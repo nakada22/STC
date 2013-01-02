@@ -12,12 +12,14 @@ import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -338,26 +340,32 @@ public class TopActivity extends Activity implements View.OnClickListener
     // メニューが選択された時の処理
     public boolean onOptionsItemSelected(MenuItem item) {
     	final Intent intent = new Intent();
-        
+    	
         switch (item.getItemId()) {
         case MENU_ID_A:
-        	intent.setClassName(
-                    "jp.co.timecard",
-                    "jp.co.timecard.MonthlyActivity");
-            startActivity(intent);
+        	
+        	//TODO パスワード入力を表示する（DB取得未対応）
+        	PassWordInput("monthly", "jp.co.timecard.MonthlyActivity");
             return true;
             
         case MENU_ID_B:
-            final CharSequence[] items = {"基本設定"};
+            final CharSequence[] items = {"基本時間設定","パスワード設定"};
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("設定");
             builder.setItems(items, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int item) {
-                	intent.setClassName(
-                            "jp.co.timecard",
-                            "jp.co.timecard.BaseSetListActivity");
-                    startActivity(intent);
+                	if (item == 0) {
+                		// 基本時刻設定クリック時
+                		intent.setClassName(
+                                "jp.co.timecard",
+                                "jp.co.timecard.BaseSetListActivity");
+                        startActivity(intent);
+                	} else if (item == 1) {
+                		//TODO パスワード設定クリック時
+                	}
+                			
+                	
                 }
             });
             builder.create();
@@ -370,5 +378,42 @@ public class TopActivity extends Activity implements View.OnClickListener
             return true;
         }
         return false;
-    }	
+    }
+    
+    
+    
+    /*
+     * パスワード入力表示メソッド
+     * */
+    public void PassWordInput (final String screen_id, final String change_place) {
+		final Intent intent = new Intent();
+		final EditText editView = new EditText(TopActivity.this);
+    	editView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+    	
+    	//TODO パスワード入力を表示する（DB未対応）
+		new AlertDialog.Builder(TopActivity.this)
+        .setIcon(android.R.drawable.ic_dialog_info)
+        .setTitle("パスワードを入力してください。")
+        .setView(editView)
+        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+            	if (editView.getText().toString().equals(screen_id)) {
+            		// パスワード入力成功時、月次画　遷移
+            		intent.setClassName(
+                            "jp.co.timecard",
+                            change_place);
+                    startActivity(intent);
+            	} else {
+            		// パスワード入力失敗時
+                    Toast.makeText(TopActivity.this, 
+                            "正しいパスワードを入力してください", 
+                            Toast.LENGTH_LONG).show();
+            	}
+            }
+        })
+        .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {}
+        })
+        .show();
+	}    
 }
