@@ -25,7 +25,7 @@ import android.widget.Toast;
 
 public class TopActivity extends Activity implements View.OnClickListener
 {
-	// test
+	// test22
 	int mYear;
 	int mMonth;
 	int hourOfDay;
