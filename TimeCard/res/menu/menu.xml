@@ -2,6 +2,10 @@
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android">
 	<item
+	    android:title="勤怠記録出力"
+	    android:id="@+id/rec_export">
+	</item>
+	<item
 	    android:title="TOPに戻る"
 	    android:id="@+id/return_top">
 	</item>
