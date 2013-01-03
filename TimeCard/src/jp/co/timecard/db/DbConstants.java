@@ -17,6 +17,8 @@ public class DbConstants {
     public static final String TABLE_NAME3 = "mst_leaveoffice";
     public static final String TABLE_NAME4 = "mst_break";
     public static final String TABLE_NAME5 = "mst_initime";
+    public static final String TABLE_NAME6 = "mst_trainee";
+    public static final String TABLE_NAME7 = "mst_password";
     
     public static final String COLUMN_KINTAI_ID = "kintai_id";
     public static final String COLUMN_KINTAI_DATE = "kintai_date";
@@ -37,12 +39,12 @@ public class DbConstants {
     public static final String COLUMN_START_TIME = "start_time";
     public static final String COLUMN_END_TIME = "end_time";
     
-    //SQL CREATE文(TABLE1)
-    // TODO AUTOINCREMENTでOK??
+    // SQL CREATE文(TABLE1)
     public static final String CREATE_TABLE1 =
             "CREATE TABLE " + TABLE_NAME1 + " ("
                             + COLUMN_KINTAI_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                            + COLUMN_KINTAI_DATE + " TEXT NOT NULL"
+                            + COLUMN_KINTAI_DATE + " TEXT NOT NULL,"
+                            + "employee_id INTEGER NOT NULL"
                             + " )";
     public static final String CREATE_TABLE2 =
             "CREATE TABLE " + TABLE_NAME2 + " ("
@@ -51,7 +53,8 @@ public class DbConstants {
                             + COLUMN_ATTENDANCE_DATE + " TEXT NOT NULL, "
                             + COLUMN_ATTENDANCE_TIME + " TEXT NOT NULL, "
                             + COLUMN_REGIST_DATETIME + " TEXT, "
-                            + COLUMN_UPDATE_DATETIME + " TEXT"
+                            + COLUMN_UPDATE_DATETIME + " TEXT, "
+                            + "employee_id INTEGER NOT NULL"
                             + " );";
     public static final String CREATE_TABLE3 =
             "CREATE TABLE " + TABLE_NAME3 + " ("
@@ -60,7 +63,8 @@ public class DbConstants {
                             + COLUMN_LEAVEOFFICE_DATE + " TEXT NOT NULL, "
                             + COLUMN_LEAVEOFFICE_TIME + " TEXT NOT NULL, "
                             + COLUMN_REGIST_DATETIME + " TEXT, "
-                            + COLUMN_UPDATE_DATETIME + " TEXT"
+                            + COLUMN_UPDATE_DATETIME + " TEXT, "
+                            + "employee_id INTEGER NOT NULL"
                             + " );";
     public static final String CREATE_TABLE4 =
             "CREATE TABLE " + TABLE_NAME4 + " ("
@@ -68,16 +72,31 @@ public class DbConstants {
                             + COLUMN_KINTAI_ID + " INTEGER NOT NULL, "
                             + COLUMN_BREAK_TIME + " TEXT NOT NULL, "
                             + COLUMN_REGIST_DATETIME + " TEXT, "
-                            + COLUMN_UPDATE_DATETIME + " TEXT"
+                            + COLUMN_UPDATE_DATETIME + " TEXT, "
+                            + "employee_id INTEGER NOT NULL"
                             + " );";
     public static final String CREATE_TABLE5 =
             "CREATE TABLE " + TABLE_NAME5 + " ("
-                            + COLUMN_START_TIME + " TEXT DEFAULT '9:00',"
-                            + COLUMN_END_TIME + " TEXT DEFAULT '17:30', "
+                            + COLUMN_START_TIME + " TEXT DEFAULT '09:30',"
+                            + COLUMN_END_TIME + " TEXT DEFAULT '18:30', "
                             + COLUMN_BREAK_TIME + " TEXT DEFAULT '1:00', "
                             + COLUMN_REGIST_DATETIME + " TEXT, "
                             + COLUMN_UPDATE_DATETIME + " TEXT"
                             + " );";
+
+    public static final String CREATE_TABLE6 = 
+            "CREATE TABLE " + TABLE_NAME6 + " (trainee_id"
+            		+ " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "employee_id INTEGER NOT NULL, "
+                    + "employee_name TEXT NOT NULL"
+                    + " );";
+    
+    public static final String CREATE_TABLE7 = 
+            "CREATE TABLE " + TABLE_NAME7 + " (screen_id"
+            		+ " TEXT PRIMARY KEY NOT NULL,"
+                    + "password TEXT NOT NULL"
+                    + " );";
+    
     
     //SQL SELECT文
     public static final String SQL_SELECT_ATTENDANC =
@@ -112,5 +131,7 @@ public class DbConstants {
     public static final String DATABASE_UPDATE3 ="DROP TABLE IF EXISTS " + TABLE_NAME3;
     public static final String DATABASE_UPDATE4 ="DROP TABLE IF EXISTS " + TABLE_NAME4;
     public static final String DATABASE_UPDATE5 ="DROP TABLE IF EXISTS " + TABLE_NAME5;
-      
+    public static final String DATABASE_UPDATE6 ="DROP TABLE IF EXISTS " + TABLE_NAME6;
+    public static final String DATABASE_UPDATE7 ="DROP TABLE IF EXISTS " + TABLE_NAME7;
+     
 }
