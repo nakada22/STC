@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,7 +28,7 @@ import android.widget.Toast;
 
 public class TopActivity extends Activity implements View.OnClickListener
 {
-	// test22
+	
 	int mYear;
 	int mMonth;
 	int hourOfDay;
@@ -100,6 +101,7 @@ public class TopActivity extends Activity implements View.OnClickListener
 	/*
 	 * トップ画面を開くと同時に勤怠マスタ(当日日付無ければ)
 	 * 時刻設定マスタへデータ登録・既に当日の謹怠記録があれば画面表示
+	 * 初期パスワード発行
 	 * */
 	public void TopPreInsert() {
 		final TextView start_tv = (TextView) findViewById(R.id.start_time2); // 始業時刻
@@ -111,6 +113,9 @@ public class TopActivity extends Activity implements View.OnClickListener
         td.preKintaiSave(sdf.format(date)); // 謹怠ID発行
         td.preTimeSave(timestamp_sdf.format(date)); // 
         td.TopTimeDisp(sdf.format(date),start_tv, end_tv, break_tv, sumtime_tv);
+        td.prePassWordSave(); // 初期パスワード発行
+        // http://zuccyimemo.blog.fc2.com/blog-entry-1.html
+        
 	}
 	
 	
@@ -326,6 +331,7 @@ public class TopActivity extends Activity implements View.OnClickListener
  
         // メニューアイテムの追加
     	MenuItem menuItemA,menuItemB,menuItemC;
+    	
     	menuItemA = menu.add(Menu.NONE, MENU_ID_A, Menu.NONE, "月次リスト");
         menuItemA.setIcon(android.R.drawable.ic_menu_month);
         
@@ -339,13 +345,15 @@ public class TopActivity extends Activity implements View.OnClickListener
     
     // メニューが選択された時の処理
     public boolean onOptionsItemSelected(MenuItem item) {
-    	final Intent intent = new Intent();
+    	final TopDao td = new TopDao(getApplicationContext());
     	
+    	// パスワード入力ダイアログを表示
         switch (item.getItemId()) {
+        
         case MENU_ID_A:
-        	
-        	//TODO パスワード入力を表示する（DB取得未対応）
-        	PassWordInput("monthly", "jp.co.timecard.MonthlyActivity");
+        	// 月次リスト
+        	String pass = td.PassWordGet("monthly");
+        	PassWordInput(pass, "jp.co.timecard.MonthlyActivity");
             return true;
             
         case MENU_ID_B:
@@ -356,16 +364,16 @@ public class TopActivity extends Activity implements View.OnClickListener
             builder.setItems(items, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int item) {
                 	if (item == 0) {
-                		// 基本時刻設定クリック時
-                		intent.setClassName(
-                                "jp.co.timecard",
-                                "jp.co.timecard.BaseSetListActivity");
-                        startActivity(intent);
+                		// 基本時間設定クリック時
+                		String pass = td.PassWordGet("basetime");
+                		PassWordInput(pass, "jp.co.timecard.BaseSetListActivity");
+                		
                 	} else if (item == 1) {
-                		//TODO パスワード設定クリック時
+                		// パスワード設定クリック時
+                		String pass = td.PassWordGet("password");
+                		PassWordInput(pass, "jp.co.timecard.PassWordSetListActivity");
+                		
                 	}
-                			
-                	
                 }
             });
             builder.create();
@@ -381,24 +389,23 @@ public class TopActivity extends Activity implements View.OnClickListener
     }
     
     
-    
     /*
      * パスワード入力表示メソッド
      * */
-    public void PassWordInput (final String screen_id, final String change_place) {
+    public void PassWordInput (final String password, final String change_place) {
 		final Intent intent = new Intent();
 		final EditText editView = new EditText(TopActivity.this);
     	editView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
     	
-    	//TODO パスワード入力を表示する（DB未対応）
+    	// パスワード入力を表示する
 		new AlertDialog.Builder(TopActivity.this)
         .setIcon(android.R.drawable.ic_dialog_info)
         .setTitle("パスワードを入力してください。")
         .setView(editView)
         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-            	if (editView.getText().toString().equals(screen_id)) {
-            		// パスワード入力成功時、月次画　遷移
+            	if (editView.getText().toString().equals(password)) {
+            		// パスワード入力成功時、月次画面遷移
             		intent.setClassName(
                             "jp.co.timecard",
                             change_place);
@@ -415,5 +422,5 @@ public class TopActivity extends Activity implements View.OnClickListener
             public void onClick(DialogInterface dialog, int whichButton) {}
         })
         .show();
-	}    
+	}
 }

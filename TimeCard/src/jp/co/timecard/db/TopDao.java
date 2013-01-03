@@ -1,15 +1,20 @@
 package jp.co.timecard.db;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import jp.co.timecard.R;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.widget.CheckBox;
 import android.widget.TextView;
 
 public class TopDao {
@@ -300,4 +305,52 @@ public class TopDao {
 			}
 		}
 	}
+	
+	
+	/*
+	 * パスワードマスタのデータ登録(アプリ起動時１回のみ)
+	 * */
+	public void prePassWordSave() {
+		SQLiteDatabase db = helper.getWritableDatabase();
+		ContentValues cv = new ContentValues();
+		//db.execSQL("DELETE FROM mst_password;");
+		Cursor c = null;
+		c = db.query(true, DbConstants.TABLE_NAME7, null, 
+	    		null, null, null, null, null, null);
+		
+		// 初期パスワード(月次, 基本時間, パスワード設定)
+		String[] pass_str = new String[]{"test1", "test2", "test3"};
+		String[] screen_str = new String[]{"monthly", "basetime", "password"};
+		
+		if (c.getCount() == 0) {
+			// データが0件であれば時刻設定マスタ登録
+			try {
+				for (int i = 0; i < pass_str.length; i++){
+					cv.put("screen_id", screen_str[i]);
+					cv.put("password", pass_str[i]);
+					db.insert(DbConstants.TABLE_NAME7, null, cv);
+				}
+			} finally {
+				db.close();
+			}
+		}
+	}
+	
+	/*
+	 * パスワードマスタのパスワード取得処理
+	 * */
+	public String PassWordGet (String screen_id) {
+		SQLiteDatabase db = helper.getWritableDatabase();
+		Cursor c = null;
+		String password = null;
+		c = db.query(true, DbConstants.TABLE_NAME7, null, 
+	    		"screen_id=?", new String[] {screen_id}, null, null, null, null);
+
+		if (c.moveToFirst()){
+			password = c.getString(1);
+		}
+		return password;
+	}
+	
+	
 }
