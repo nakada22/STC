@@ -181,8 +181,10 @@ public class TopActivity extends Activity implements View.OnClickListener
 	public void checkBoxChange() {
 		final Button inibtn = (Button) findViewById(R.id.ini);
 		final CheckBox checkBox = (CheckBox) findViewById(R.id.checkBox1);
-		inibtn.setVisibility(View.INVISIBLE);
 		
+		// チェックの on/off 切り替えを無効とする
+		checkBox.setChecked(!checkBox.isChecked());
+		inibtn.setVisibility(View.INVISIBLE);
 		if (checkBox.isChecked() == true) {
 			inibtn.setVisibility(View.INVISIBLE);
 		} else {
@@ -312,6 +314,7 @@ public class TopActivity extends Activity implements View.OnClickListener
         // チェックボックス true 設定ボタン非表示
         CheckBox checkBox = (CheckBox) findViewById(R.id.checkBox1);
     	checkBox.setChecked(true);
+    	
     	Button inibtn = (Button) findViewById(R.id.ini);
 		inibtn.setVisibility(View.INVISIBLE);
 	}
