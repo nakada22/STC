@@ -33,6 +33,10 @@
             android:name=".BaseSetListActivity"
             android:label="@string/title_baseini" >
         </activity>
+		<activity
+            android:name=".PassWordSetListActivity"
+            android:label="@string/password_ini" >
+        </activity>
     </application>
 
 </manifest>

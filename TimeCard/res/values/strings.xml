@@ -7,6 +7,7 @@
     <string name="title_top">タイムカード</string>
     <string name="title_monthly">月次画面</string>
     <string name="title_setting">設定画面</string>
-    <string name="title_baseini">設定画面</string>
+    <string name="title_baseini">基本時間設定画面</string>
+    <string name="password_ini">パスワード設定画面</string>
     <string name="CheckBox">現在の時刻を使用する</string>
 </resources>
