@@ -57,12 +57,11 @@ public class TopDao {
 		c = db.query(true, DbConstants.TABLE_NAME5, null, 
 	    		null, null, null, null, null, null);
 		
-		//long ret;
 		if (c.getCount() == 0) {
 			// データが0件であれば時刻設定マスタ登録
 			try {
-				cv.put(DbConstants.COLUMN_START_TIME, "09:00");
-				cv.put(DbConstants.COLUMN_END_TIME, "17:30");
+				cv.put(DbConstants.COLUMN_START_TIME, "09:30");
+				cv.put(DbConstants.COLUMN_END_TIME, "18:30");
 				cv.put(DbConstants.COLUMN_BREAK_TIME, "01:00");
 				cv.put(DbConstants.COLUMN_REGIST_DATETIME, str);
 				cv.put(DbConstants.COLUMN_UPDATE_DATETIME, str);
