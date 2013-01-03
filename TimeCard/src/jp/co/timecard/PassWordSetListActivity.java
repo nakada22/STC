@@ -60,17 +60,17 @@ public class PassWordSetListActivity extends Activity {
 		
 		// 初期表示
 		item = new HashMap<String, String>();
-		item.put("title", "月次画面");
+		item.put("title", "月次リスト");
 		item.put("desc", "現在の設定 ****");
 		mList.add(item);
 
 		item = new HashMap<String, String>();
-		item.put("title", "基本時間設定画面");
+		item.put("title", "基本時間設定");
 		item.put("desc", "現在の設定 ****");
 		mList.add(item);
 
 		item = new HashMap<String, String>();
-		item.put("title", "パスワード設定画面");
+		item.put("title", "パスワード設定");
 		item.put("desc", "現在の設定 ****");
 		mList.add(item);
 		
