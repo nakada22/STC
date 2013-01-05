@@ -11,30 +11,47 @@
         android:layout_height="wrap_content"
         android:background="@layout/top_back" >
     <TableRow>
-	<ImageView
-	    android:src="@drawable/dakoku"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	/>
-	<ImageView
+		<ImageView
+		    android:src="@drawable/dakoku"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		/>
+		<ImageView
 	    	android:layout_marginLeft="100sp"
 	        android:src="@drawable/dakoku"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	    />   
    </TableRow>
-   
+</TableLayout>
 
+<TableLayout
+       android:layout_width="fill_parent"
+       android:layout_height="wrap_content"
+       android:background="@layout/top_back" >
+	<TableRow>
+		<!-- 社員情報選択プルダウン -->
+		<Spinner
+		    android:id="@+id/employ_select"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_marginLeft="10dp"
+		    android:prompt="@string/employ_select"
+		    android:gravity="center"
+	    />
+	</TableRow>
+</TableLayout>
+	
+
+<TableLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@layout/top_back" >
   	<TableRow
   	    android:layout_width="fill_parent">
 
-
-
-
-
-
-
-
+	  	
+  	    	
   	     <ImageButton
   	         android:id="@+id/attendance"
   	         android:layout_width="0dip"
@@ -59,24 +76,8 @@
   	        android:src="@drawable/leave" />
 
 
-
-
-
-
-
-  	    <ImageButton
-  	        android:id="@+id/tsukiji"
-  	        android:layout_width="0dip"
-  	        android:layout_height="wrap_content"
-  	        android:layout_margin="0px"
-  	        android:layout_weight="1"
-  	        android:background="@null"
-  	        android:padding="0px"
-  	        android:src="@drawable/tsukiji" />
-
   	</TableRow>
         
-</TableLayout>
 	
     <CheckBox
         android:id="@+id/checkBox1"
@@ -270,6 +271,6 @@
 		    android:textColor="#000000" />
 	    </TableRow>
     </TableLayout>
-    
+</TableLayout>
 
 </LinearLayout>

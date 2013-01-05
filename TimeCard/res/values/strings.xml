@@ -10,4 +10,5 @@
     <string name="title_baseini">基本時間設定画面</string>
     <string name="password_ini">パスワード設定画面</string>
     <string name="CheckBox">現在の時刻を使用する</string>
+    <string name="employ_select">社員情報を選択して下さい</string>
 </resources>

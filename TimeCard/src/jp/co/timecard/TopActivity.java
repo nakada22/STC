@@ -13,15 +13,17 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -39,7 +41,10 @@ public class TopActivity extends Activity implements View.OnClickListener
     Date date = new Date();
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
 	SimpleDateFormat timestamp_sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	Spinner spinner;
 
+    
+    
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -47,12 +52,11 @@ public class TopActivity extends Activity implements View.OnClickListener
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
-
+        
         findViewById(R.id.checkBox1).setOnClickListener(this);
         findViewById(R.id.attendance).setOnClickListener(this);
         findViewById(R.id.leaveoffice).setOnClickListener(this);
         findViewById(R.id.ini).setOnClickListener(this);
-        findViewById(R.id.tsukiji).setOnClickListener(this);
         
         
         mYear = c.get(Calendar.YEAR);
@@ -73,6 +77,8 @@ public class TopActivity extends Activity implements View.OnClickListener
 
 	    CurrentDisp();
         TopPreInsert();
+        employ_select();
+        
     }
     
 	@Override
@@ -89,9 +95,6 @@ public class TopActivity extends Activity implements View.OnClickListener
 			break;			
 		case R.id.ini:
 			IniChange();
-			break;
-		case R.id.tsukiji:
-			MonthlyListChange();
 			break;
 		default:
 			break;
@@ -426,4 +429,45 @@ public class TopActivity extends Activity implements View.OnClickListener
         })
         .show();
 	}
+    
+    /*
+     * 社員情報選択プルダウン
+     * */
+    private void employ_select(){
+    	
+    	//TODO 社員情報ファイルよりデータ取得
+    	final String[] employ_list = {"社員情報を選択して下さい","テスト太郎", "情熱二郎", "佐藤花子"};
+        spinner = (Spinner)findViewById(R.id.employ_select);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+          android.R.layout.simple_spinner_item,employ_list);
+          
+		adapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
+		// 表題
+		//spinner.setPrompt("社員情報を選択して下さい");
+		spinner.setSelection(0);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+	        @Override
+	        public void onItemSelected(AdapterView<?> parent,
+	        	View view, int position, long id) {
+	                Spinner spinner = (Spinner) parent;
+	                String item = (String) spinner.getSelectedItem();
+//	                Toast.makeText(TopActivity.this,
+//		                String.format("%sが選択されました。", item),
+//		                Toast.LENGTH_SHORT).show();
+	        	}
+	        	
+	            @Override
+	            public void onNothingSelected(AdapterView<?> parent) {
+	            	// Spinnerで何も選択されなかった場合の動作
+	        		// 初期値はココでセットする
+//	                Toast.makeText(TopActivity.this,
+//		        		"onNothingSelected", Toast.LENGTH_SHORT).show();
+	            }
+	        });
+    }
+    
+    
+    
 }
