@@ -55,7 +55,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
 	SimpleDateFormat timestamp_sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	Spinner spinner;
-
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -436,15 +436,14 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	 * 社員情報選択プルダウン
 	 */
 	private void employ_select() {
-
+		TopDao td = new TopDao(getApplicationContext());
+		
 		// 社員情報ファイルよりデータ取得
 		final String con_url = "http://sashihara.web.fc2.com/employ_info.csv";
 		List<String> employ_list = new ArrayList<String>();// 社員リスト
 		
 		// ネットから社員データ取得
 		final Map<String, String> employ_data = doNet(con_url);
-		
-		//TODO 社員情報のDB登録
 		
 		Set keySet = employ_data.keySet();
 		Iterator keyIte = keySet.iterator();
@@ -455,9 +454,12 @@ public class TopActivity extends Activity implements View.OnClickListener {
 				// 最初だけ「社員情報選択」の文言入れる
 				employ_list.add("社員情報を選択して下さい");
 			}
-			Object key = keyIte.next(); // 社員ID
+			String key = keyIte.next().toString(); // 社員ID
 			String value = employ_data.get(key); // 社員氏名
 			employ_list.add(value);
+			
+			// 社員情報のDB登録
+			td.EmployDBInsert(key, value);
 			i++;
 			// System.out.println(key + "=" + value);
 		}
