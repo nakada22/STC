@@ -34,6 +34,7 @@ public class DbConstants {
     public static final String COLUMN_LEAVEOFFICE_TIME = "leaveoffice_time";
     
     public static final String COLUMN_BREAK_ID = "break_id";
+    public static final String COLUMN_BREAK_DATE = "break_date";
     public static final String COLUMN_BREAK_TIME = "break_time";
  
     public static final String COLUMN_START_TIME = "start_time";
@@ -74,6 +75,7 @@ public class DbConstants {
             "CREATE TABLE " + TABLE_NAME4 + " ("
                             + COLUMN_BREAK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                             + COLUMN_EMPLOYEE_ID + " INTEGER NOT NULL, "
+                            + COLUMN_BREAK_DATE + " TEXT NOT NULL, "
                             + COLUMN_BREAK_TIME + " TEXT NOT NULL, "
                             + COLUMN_REGIST_DATETIME + " TEXT, "
                             + COLUMN_UPDATE_DATETIME + " TEXT "
