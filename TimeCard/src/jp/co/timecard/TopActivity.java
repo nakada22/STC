@@ -26,6 +26,7 @@ import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,7 +38,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -55,6 +55,9 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
 	SimpleDateFormat timestamp_sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	Spinner spinner;
+	Handler mHandler = new Handler();
+
+	
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -89,7 +92,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		employ_select(); // 「社員情報選択」表示
 
 	}
-
+	
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
@@ -223,7 +226,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		} else {
 			atd_flg = td.AttendanceSave(sdf.format(date), currenttime, atd_tv);
 		}
-
+		
 		// 既に退勤済みの場合
 		if (atd_flg == false) {
 			Toast.makeText(TopActivity.this, "既に退勤済みです", Toast.LENGTH_SHORT)
@@ -233,8 +236,25 @@ public class TopActivity extends Activity implements View.OnClickListener {
 				Toast.makeText(TopActivity.this, "出勤", Toast.LENGTH_SHORT)
 						.show();
 			}
+			
 		}
 		td.AttendanceTimeDisp(sdf.format(date), start_tv);
+		
+		// 出勤ボタン押下後に、Spinnerを初期値にもどす(３秒間Sleepさせる)
+		new Thread(new Runnable() {
+		    public void run() {
+	            try {
+	                 Thread.sleep(3000);
+	            }catch(InterruptedException e){}
+	            mHandler.post(new Runnable() {
+	                public void run() {
+	                	// Spinnerを初期値にもどす
+			            employ_select();
+	                }
+	            });
+	            
+		    }
+		}).start();
 	}
 
 	/*
@@ -280,6 +300,22 @@ public class TopActivity extends Activity implements View.OnClickListener {
 
 		td.preBreakSave(sdf.format(date), currenttime);
 		td.TopTimeDisp(sdf.format(date), start_tv, end_tv, break_tv, sumtime_tv);
+		
+		// 退勤ボタン押下後に、Spinnerを初期値にもどす(３秒間Sleepさせる)
+		new Thread(new Runnable() {
+		    public void run() {
+	            try {
+	                 Thread.sleep(3000);
+	            }catch(InterruptedException e){}
+	            mHandler.post(new Runnable() {
+	                public void run() {
+	                	// Spinnerを初期値にもどす
+			            employ_select();
+	                }
+	            });
+		    }
+		}).start();
+				
 	}
 
 	/*
@@ -473,7 +509,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		// 表題
 		// spinner.setPrompt("社員情報を選択して下さい");
 		spinner.setSelection(0);
-
+		
 		spinner.setAdapter(adapter);
 		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 			@Override
