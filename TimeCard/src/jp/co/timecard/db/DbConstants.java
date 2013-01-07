@@ -7,7 +7,7 @@ package jp.co.timecard.db;
 */
 public class DbConstants {
 
-//データベースの名前とバージョン
+	//データベースの名前とバージョン
     public static final String DATABASE_NAME = "TimeCardDB";
     public static final int DATABASE_VERSION = 1;
 
@@ -20,7 +20,7 @@ public class DbConstants {
     public static final String TABLE_NAME6 = "mst_trainee";
     public static final String TABLE_NAME7 = "mst_password";
     
-    public static final String COLUMN_KINTAI_ID = "kintai_id";
+    public static final String COLUMN_EMPLOYEE_ID = "employee_id";
     public static final String COLUMN_KINTAI_DATE = "kintai_date";
     
     public static final String COLUMN_ATTENDANCE_ID = "attendance_id";
@@ -39,41 +39,44 @@ public class DbConstants {
     public static final String COLUMN_START_TIME = "start_time";
     public static final String COLUMN_END_TIME = "end_time";
     
+    public static final String COLUMN_TRAINEE_ID = "trainee_id";
+    public static final String COLUMN_EMPLOYEE_NAME = "employee_name";
+    
+    public static final String COLUMN_SCREEN_ID = "screen_id";
+    public static final String COLUMN_PASSWORD = "password";
+    
     // SQL CREATE文(TABLE1)
     public static final String CREATE_TABLE1 =
             "CREATE TABLE " + TABLE_NAME1 + " ("
-                            + COLUMN_KINTAI_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                            + COLUMN_KINTAI_DATE + " TEXT NOT NULL,"
-                            + "employee_id INTEGER NOT NULL"
-                            + " )";
+                            + COLUMN_EMPLOYEE_ID + " INTEGER NOT NULL,"
+                            + COLUMN_KINTAI_DATE + " TEXT NOT NULL, "
+                            + "PRIMARY KEY(" + COLUMN_EMPLOYEE_ID + ", " + COLUMN_KINTAI_DATE
+                            + ") )";
     public static final String CREATE_TABLE2 =
             "CREATE TABLE " + TABLE_NAME2 + " ("
                             + COLUMN_ATTENDANCE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                            + COLUMN_KINTAI_ID + " INTEGER NOT NULL, "
+                            + COLUMN_EMPLOYEE_ID + " INTEGER NOT NULL, "
                             + COLUMN_ATTENDANCE_DATE + " TEXT NOT NULL, "
                             + COLUMN_ATTENDANCE_TIME + " TEXT NOT NULL, "
                             + COLUMN_REGIST_DATETIME + " TEXT, "
-                            + COLUMN_UPDATE_DATETIME + " TEXT, "
-                            + "employee_id INTEGER NOT NULL"
+                            + COLUMN_UPDATE_DATETIME + " TEXT "
                             + " );";
     public static final String CREATE_TABLE3 =
             "CREATE TABLE " + TABLE_NAME3 + " ("
                             + COLUMN_LEAVEOFFICE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                            + COLUMN_KINTAI_ID + " INTEGER NOT NULL, "
+                            + COLUMN_EMPLOYEE_ID + " INTEGER NOT NULL, "
                             + COLUMN_LEAVEOFFICE_DATE + " TEXT NOT NULL, "
                             + COLUMN_LEAVEOFFICE_TIME + " TEXT NOT NULL, "
                             + COLUMN_REGIST_DATETIME + " TEXT, "
-                            + COLUMN_UPDATE_DATETIME + " TEXT, "
-                            + "employee_id INTEGER NOT NULL"
+                            + COLUMN_UPDATE_DATETIME + " TEXT "
                             + " );";
     public static final String CREATE_TABLE4 =
             "CREATE TABLE " + TABLE_NAME4 + " ("
                             + COLUMN_BREAK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                            + COLUMN_KINTAI_ID + " INTEGER NOT NULL, "
+                            + COLUMN_EMPLOYEE_ID + " INTEGER NOT NULL, "
                             + COLUMN_BREAK_TIME + " TEXT NOT NULL, "
                             + COLUMN_REGIST_DATETIME + " TEXT, "
-                            + COLUMN_UPDATE_DATETIME + " TEXT, "
-                            + "employee_id INTEGER NOT NULL"
+                            + COLUMN_UPDATE_DATETIME + " TEXT "
                             + " );";
     public static final String CREATE_TABLE5 =
             "CREATE TABLE " + TABLE_NAME5 + " ("
@@ -85,45 +88,17 @@ public class DbConstants {
                             + " );";
 
     public static final String CREATE_TABLE6 = 
-            "CREATE TABLE " + TABLE_NAME6 + " (trainee_id"
-            		+ " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    + "employee_id INTEGER NOT NULL, "
-                    + "employee_name TEXT NOT NULL"
+            "CREATE TABLE " + TABLE_NAME6 + " ("
+            		+ COLUMN_TRAINEE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + COLUMN_EMPLOYEE_ID + " INTEGER NOT NULL, "
+                    + COLUMN_EMPLOYEE_NAME + " TEXT NOT NULL"
                     + " );";
     
     public static final String CREATE_TABLE7 = 
-            "CREATE TABLE " + TABLE_NAME7 + " (screen_id"
-            		+ " TEXT PRIMARY KEY NOT NULL,"
-                    + "password TEXT NOT NULL"
+            "CREATE TABLE " + TABLE_NAME7 + " ("
+            		+ COLUMN_SCREEN_ID + " TEXT PRIMARY KEY NOT NULL,"
+                    + COLUMN_PASSWORD + " TEXT NOT NULL"
                     + " );";
-    
-    
-    //SQL SELECT文
-    public static final String SQL_SELECT_ATTENDANC =
-     " SELECT " + COLUMN_ATTENDANCE_DATE + ", " + COLUMN_ATTENDANCE_TIME +
-     " FROM " + TABLE_NAME1 + ", " + TABLE_NAME2 +
-     " WHERE " + COLUMN_KINTAI_ID + " = ? AND " +
-     TABLE_NAME1 + "." + COLUMN_KINTAI_ID + "=" + TABLE_NAME2 + "." + COLUMN_KINTAI_ID +
-     ";";
-    
-    public static final String SQL_SELECT_LEAVEOFFICE =
-     " SELECT " + COLUMN_LEAVEOFFICE_DATE + ", " + COLUMN_LEAVEOFFICE_TIME +
-     " FROM " + TABLE_NAME1 + ", " + TABLE_NAME3 +
-     " WHERE " + COLUMN_KINTAI_ID + " = ? AND " +
-     TABLE_NAME1 + "." + COLUMN_KINTAI_ID + "=" + TABLE_NAME3 + "." + COLUMN_KINTAI_ID +
-     ";";
-
-    public static final String SQL_SELECT_BREAK =
-     " SELECT " + COLUMN_BREAK_TIME +
-     " FROM " + TABLE_NAME1 + ", " + TABLE_NAME4 +
-     " WHERE " + COLUMN_KINTAI_ID + " = ? AND " +
-     TABLE_NAME1 + "." + COLUMN_KINTAI_ID + "=" + TABLE_NAME4 + "." + COLUMN_KINTAI_ID +
-     ";";
-
-    public static final String SQL_SELECT_INITIME =
-     " SELECT " + COLUMN_START_TIME + ", " + COLUMN_END_TIME + ", " + COLUMN_BREAK_TIME +
-     " FROM " + TABLE_NAME5 +
-     ";";
     
     //SQL DROP TABLE文
     public static final String DATABASE_UPDATE1 ="DROP TABLE IF EXISTS " + TABLE_NAME1;

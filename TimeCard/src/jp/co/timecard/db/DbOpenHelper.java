@@ -3,6 +3,7 @@ package jp.co.timecard.db;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 /**
 * データベースの作成、更新を行う。
@@ -33,7 +34,7 @@ public class DbOpenHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     	
-    	//if( oldVersion == 2 && newVersion == 3 ){
+    	//if( oldVersion == 1 && newVersion == 2 ){
         	String []DATABASE_UPDATE = {DbConstants.DATABASE_UPDATE1,
         	         DbConstants.DATABASE_UPDATE2,
         		     DbConstants.DATABASE_UPDATE3,
