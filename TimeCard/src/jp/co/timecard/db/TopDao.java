@@ -3,7 +3,9 @@ package jp.co.timecard.db;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import jp.co.timecard.TopActivity;
 import android.content.ContentValues;
@@ -25,25 +27,25 @@ public class TopDao {
 	}
 	
 	/**
-	 * 外部キーとして使用される勤怠ID登録メソッド(アプリ起動時１回のみ)
+	 * 外部キーとして使用される社員ID登録メソッド(spinner選択時)
 	 * 但しアプリ起動日付のデータがある時は、Insertしない
 	 * @return None
 	 * @param str 当日日付
 	 */
-	public void preKintaiSave(String str) {
+	public void preKintaiSave(String kintai_date, String employee_id) {
 		// 勤怠マスタにデータがあるか、なければInsert
 		SQLiteDatabase db = helper.getWritableDatabase();
 
-		// db.execSQL("DELETE FROM mst_kintai;");
-		c = db.query(true, DbConstants.TABLE_NAME1, null,
-				DbConstants.COLUMN_KINTAI_DATE + "='" + str + "'", null, null,
-				null, null, null);
-
+		//db.execSQL("DELETE FROM mst_kintai;");
+		c = db.query(true, DbConstants.TABLE_NAME1, null, "employee_id=?",
+				new String[] { employee_id }, null, null, null, null);
+		
 		// long ret;
 		if (c.getCount() == 0) {
 			// データが0件であれば勤怠マスタ登録
 			try {
-				cv.put(DbConstants.COLUMN_KINTAI_DATE, str);
+				cv.put(DbConstants.COLUMN_EMPLOYEE_ID, employee_id);
+				cv.put(DbConstants.COLUMN_KINTAI_DATE, kintai_date);
 				db.insert(DbConstants.TABLE_NAME1, null, cv);
 			} finally {
 				db.close();
@@ -62,7 +64,7 @@ public class TopDao {
 		// db.execSQL("DELETE FROM mst_initime;");
 		c = db.query(true, DbConstants.TABLE_NAME5, null, null, null, null,
 				null, null, null);
-
+		
 		if (c.getCount() == 0) {
 			// データが0件であれば時刻設定マスタ登録
 			try {
@@ -99,12 +101,12 @@ public class TopDao {
 			String break_time = c.getString(c.getColumnIndex("break_time"));
 
 			Cursor c2 = db.rawQuery("SELECT * FROM " + "mst_break WHERE "
-					+ DbConstants.COLUMN_KINTAI_ID + "=" + kintai_id, null);
+					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + kintai_id, null);
 
 			// データがなければInsert
 			if (c2.getCount() == 0) {
 				try {
-					cv.put(DbConstants.COLUMN_KINTAI_ID, kintai_id);
+					cv.put(DbConstants.COLUMN_EMPLOYEE_ID, kintai_id);
 					cv.put(DbConstants.COLUMN_BREAK_TIME, break_time);
 					cv.put(DbConstants.COLUMN_REGIST_DATETIME, kintai_date_time);
 					cv.put(DbConstants.COLUMN_UPDATE_DATETIME, kintai_date_time);
@@ -124,40 +126,41 @@ public class TopDao {
 	 * @param kintai_date 出勤日
 	 * @param kintai_date_time 出勤時刻
 	 * @param atd_time 出勤時刻TextView
+	 * @param employee_name 社員名
 	 */
 	public boolean AttendanceSave(String kintai_date, String kintai_date_time,
-			TextView atd_time) {
+			TextView atd_time, String employee_name) {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		// db.execSQL("DELETE FROM mst_attendance;");
-
-		// Insertする謹怠ID取得
-		c = db.rawQuery("SELECT mk.kintai_id FROM " + "mst_kintai mk"
-				+ " WHERE mk." + DbConstants.COLUMN_KINTAI_DATE + "='"
-				+ kintai_date + "'", null);
-
+		// Insertする社員ID取得
+		c = db.query(true, DbConstants.TABLE_NAME6, null, "employee_name=?",
+				new String[] { employee_name }, null, null, null, null);
+		
 		if (c.moveToFirst()) {
-			String kintai_id = c.getString(c.getColumnIndex("kintai_id"));
+			String employee_id = c.getString(c.getColumnIndex("employee_id"));
 			String ins_atd_time;
 
 			// 現在時刻使用チェック時
-			if (atd_time != null) {
-				ins_atd_time = atd_time.getText().toString();// 画面表示時刻で登録
-			} else {
-				SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");// 現在時刻で登録
-				ins_atd_time = sdf.format(Calendar.getInstance().getTime());
-			}
+			//if (atd_time != null) {
+			//	ins_atd_time = atd_time.getText().toString();// 画面表示時刻で登録
+			//} else {
+			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");// 現在時刻で登録
+			ins_atd_time = sdf.format(Calendar.getInstance().getTime());
+			//}
 
 			Cursor c2 = db.rawQuery("SELECT * FROM " + "mst_attendance WHERE "
-					+ DbConstants.COLUMN_KINTAI_ID + "=" + kintai_id, null);
-
+					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id
+					+ " AND attendance_date='" + kintai_date + "'", null);
+			
 			// 既に退勤済の場合は、更新処理を行わない
 			Cursor c3 = db.rawQuery("SELECT * FROM " + "mst_leaveoffice WHERE "
-					+ DbConstants.COLUMN_KINTAI_ID + "=" + kintai_id, null);
-
+					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id
+					+ " AND leaveoffice_date='" + kintai_date + "'", null);
+			
 			if (c2.getCount() == 0) {
 				// データがなければ新規登録
 				try {
-					cv.put(DbConstants.COLUMN_KINTAI_ID, kintai_id);
+					cv.put(DbConstants.COLUMN_EMPLOYEE_ID, employee_id);
 					cv.put(DbConstants.COLUMN_ATTENDANCE_DATE, kintai_date);
 					cv.put(DbConstants.COLUMN_ATTENDANCE_TIME, ins_atd_time);
 					cv.put(DbConstants.COLUMN_REGIST_DATETIME, kintai_date_time);
@@ -177,7 +180,7 @@ public class TopDao {
 						cv.put(DbConstants.COLUMN_UPDATE_DATETIME,
 								kintai_date_time);
 						db.update(DbConstants.TABLE_NAME2, cv,
-								DbConstants.COLUMN_KINTAI_ID + "=" + kintai_id,
+								DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id,
 								null);
 					} finally {
 						db.close();
@@ -193,17 +196,23 @@ public class TopDao {
 	}
 	
 	/**
-	 * 始業時刻表示用メソッド
+	 * 出勤時刻表示用メソッド
 	 * 
 	 * @return None
 	 * @param atd_date  出勤日
 	 * @param tv 表示TextView
 	 */
-	public void AttendanceTimeDisp(String atd_date, TextView tv) {
+	public void AttendanceTimeDisp(String atd_date, TextView tv, String employ_name) {
+		
 		SQLiteDatabase db = helper.getWritableDatabase();
+		// 社員ID取得SQL
+		String SQL = "(SELECT employee_id FROM mst_trainee WHERE employee_name='"
+					+ employ_name + "')";
+		
 		c = db.rawQuery("SELECT attendance_time FROM " + "mst_attendance "
 				+ " WHERE " + DbConstants.COLUMN_ATTENDANCE_DATE + "='"
-				+ atd_date + "'", null);
+				+ atd_date + "' AND employee_id=" + SQL, null);
+		
 		if (c.moveToFirst()) {
 			String attendance_time = c.getString(c
 					.getColumnIndex("attendance_time"));
@@ -242,10 +251,10 @@ public class TopDao {
 			}
 
 			Cursor c2 = db.rawQuery("SELECT * FROM " + "mst_leaveoffice WHERE "
-					+ DbConstants.COLUMN_KINTAI_ID + "=" + kintai_id, null);
+					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + kintai_id, null);
 
 			Cursor c3 = db.rawQuery("SELECT * FROM " + "mst_attendance WHERE "
-					+ DbConstants.COLUMN_KINTAI_ID + "=" + kintai_id, null);
+					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + kintai_id, null);
 
 			if (c2.getCount() == 0) {
 				// 退勤記録がなくても、出勤記録もなければ新規登録は行わない
@@ -254,7 +263,7 @@ public class TopDao {
 					return false;
 				} else {
 					try {
-						cv.put(DbConstants.COLUMN_KINTAI_ID, kintai_id);
+						cv.put(DbConstants.COLUMN_EMPLOYEE_ID, kintai_id);
 						cv.put(DbConstants.COLUMN_LEAVEOFFICE_DATE, kintai_date);
 						cv.put(DbConstants.COLUMN_LEAVEOFFICE_TIME,
 								ins_leave_time);
@@ -273,7 +282,7 @@ public class TopDao {
 					cv.put(DbConstants.COLUMN_LEAVEOFFICE_TIME, ins_leave_time);
 					cv.put(DbConstants.COLUMN_UPDATE_DATETIME, kintai_date_time);
 					db.update(DbConstants.TABLE_NAME3, cv,
-							DbConstants.COLUMN_KINTAI_ID + "=" + kintai_id,
+							DbConstants.COLUMN_EMPLOYEE_ID + "=" + kintai_id,
 							null);
 				} finally {
 					db.close();
@@ -298,15 +307,15 @@ public class TopDao {
 	 */
 	public void TopTimeDisp(String leave_date, TextView tv1, TextView tv2,
 			TextView tv3, TextView tv4) {
-
+		
 		SQLiteDatabase db = helper.getWritableDatabase();
 		c = db.rawQuery(
 				"SELECT ml.leaveoffice_time, mb.break_time, ma.attendance_time"
 						+ " FROM mst_leaveoffice ml, mst_break mb, mst_attendance ma"
 						+ " WHERE ml." + DbConstants.COLUMN_LEAVEOFFICE_DATE
 						+ "='" + leave_date + "'"
-						+ " AND ml.kintai_id = mb.kintai_id"
-						+ " AND ml.kintai_id = ma.kintai_id", null);
+						+ " AND ml.employee_id = mb.employee_id"
+						+ " AND ml.employee_id = ma.employee_id", null);
 
 		if (c.moveToFirst()) {
 			String leave_time = c.getString(c
@@ -358,7 +367,7 @@ public class TopDao {
 		// 初期パスワード(月次, 基本時間, パスワード設定)
 		String[] pass_str = new String[] { "test1", "test2", "test3" };
 		String[] screen_str = new String[] { "monthly", "basetime", "password" };
-
+		
 		if (c.getCount() == 0) {
 			// データが0件であれば時刻設定マスタ登録
 			try {

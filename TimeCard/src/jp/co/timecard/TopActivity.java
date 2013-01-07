@@ -28,6 +28,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -57,8 +58,6 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	Spinner spinner;
 	Handler mHandler = new Handler();
 
-	
-	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -90,9 +89,8 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		CurrentDisp();
 		TopPreInsert();
 		employ_select(); // 「社員情報選択」表示
-
 	}
-	
+
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
@@ -114,7 +112,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	}
 
 	/*
-	 * トップ画面を開くと同時に勤怠マスタ(当日日付無ければ) 時刻設定マスタへデータ登録・既に当日の謹怠記録があれば画面表示 初期パスワード発行
+	 * トップ画面を開くと同時に勤怠マスタ(当日日付無ければ) 時刻設定マスタへデータ登録・既に当日の勤怠記録があれば画面表示 初期パスワード発行
 	 */
 	public void TopPreInsert() {
 		final TextView start_tv = (TextView) findViewById(R.id.start_time2); // 始業時刻
@@ -123,7 +121,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		final TextView sumtime_tv = (TextView) findViewById(R.id.sum_time2); // 合計時間
 
 		TopDao td = new TopDao(getApplicationContext());
-		td.preKintaiSave(sdf.format(date)); // 謹怠ID発行
+
 		td.preTimeSave(timestamp_sdf.format(date)); //
 		td.TopTimeDisp(sdf.format(date), start_tv, end_tv, break_tv, sumtime_tv);
 		td.prePassWordSave(); // 初期パスワード発行
@@ -205,28 +203,32 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	 * 出勤ボタン押下処理
 	 */
 	public void AttendChange() {
+		spinner = (Spinner) findViewById(R.id.employ_select);
+
+		// 選択されている社員名
+		String employ_name = spinner.getSelectedItem().toString();
+
+		// 「社員名」未選択時は、登録処理を行わない
+		if (employ_name.equals("社員情報を選択して下さい")) {
+			Toast.makeText(TopActivity.this, "社員名が未選択です", Toast.LENGTH_SHORT)
+					.show();
+			return;
+		}
 
 		final ImageButton imgbutton = new ImageButton(this);
 		imgbutton.setImageResource(R.drawable.atendance);
-
 		final TextView start_tv = (TextView) findViewById(R.id.start_time2);
-
-		// 出勤マスタへDB登録（画面で設定した時刻）
-		TextView atd_tv = (TextView) findViewById(R.id.currenttime);
-		TopDao td = new TopDao(getApplicationContext());
+		boolean atd_flg;
+		// TextView atd_tv = (TextView) findViewById(R.id.currenttime);
 
 		String currenttime = timestamp_sdf.format(Calendar.getInstance()
-				.getTime());
-		final CheckBox checkBox = (CheckBox) findViewById(R.id.checkBox1);
-		boolean atd_flg;
+				.getTime()); // 現在時刻
 
-		if (checkBox.isChecked() == true) {
-			// 現在時刻使用チェック時、現在時刻で退勤時刻を記録
-			atd_flg = td.AttendanceSave(sdf.format(date), currenttime, null);
-		} else {
-			atd_flg = td.AttendanceSave(sdf.format(date), currenttime, atd_tv);
-		}
-		
+		// 現在時刻使用チェック時、現在時刻で出勤マスタへDB登録
+		TopDao td = new TopDao(getApplicationContext());
+		atd_flg = td.AttendanceSave(sdf.format(date), currenttime, null,
+				employ_name);
+
 		// 既に退勤済みの場合
 		if (atd_flg == false) {
 			Toast.makeText(TopActivity.this, "既に退勤済みです", Toast.LENGTH_SHORT)
@@ -236,24 +238,25 @@ public class TopActivity extends Activity implements View.OnClickListener {
 				Toast.makeText(TopActivity.this, "出勤", Toast.LENGTH_SHORT)
 						.show();
 			}
-			
 		}
-		td.AttendanceTimeDisp(sdf.format(date), start_tv);
-		
+
+		td.AttendanceTimeDisp(sdf.format(date), start_tv, employ_name);
+
 		// 出勤ボタン押下後に、Spinnerを初期値にもどす(３秒間Sleepさせる)
 		new Thread(new Runnable() {
-		    public void run() {
-	            try {
-	                 Thread.sleep(3000);
-	            }catch(InterruptedException e){}
-	            mHandler.post(new Runnable() {
-	                public void run() {
-	                	// Spinnerを初期値にもどす
-			            employ_select();
-	                }
-	            });
-	            
-		    }
+			public void run() {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+				}
+				mHandler.post(new Runnable() {
+					public void run() {
+						// Spinnerを初期値にもどす
+						employ_select();
+					}
+				});
+
+			}
 		}).start();
 	}
 
@@ -300,22 +303,23 @@ public class TopActivity extends Activity implements View.OnClickListener {
 
 		td.preBreakSave(sdf.format(date), currenttime);
 		td.TopTimeDisp(sdf.format(date), start_tv, end_tv, break_tv, sumtime_tv);
-		
+
 		// 退勤ボタン押下後に、Spinnerを初期値にもどす(３秒間Sleepさせる)
 		new Thread(new Runnable() {
-		    public void run() {
-	            try {
-	                 Thread.sleep(3000);
-	            }catch(InterruptedException e){}
-	            mHandler.post(new Runnable() {
-	                public void run() {
-	                	// Spinnerを初期値にもどす
-			            employ_select();
-	                }
-	            });
-		    }
+			public void run() {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+				}
+				mHandler.post(new Runnable() {
+					public void run() {
+						// Spinnerを初期値にもどす
+						employ_select();
+					}
+				});
+			}
 		}).start();
-				
+
 	}
 
 	/*
@@ -472,15 +476,15 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	 * 社員情報選択プルダウン
 	 */
 	private void employ_select() {
-		TopDao td = new TopDao(getApplicationContext());
-		
+		final TopDao td = new TopDao(getApplicationContext());
+
 		// 社員情報ファイルよりデータ取得
 		final String con_url = "http://sashihara.web.fc2.com/employ_info.csv";
 		List<String> employ_list = new ArrayList<String>();// 社員リスト
-		
+
 		// ネットから社員データ取得
 		final Map<String, String> employ_data = doNet(con_url);
-		
+
 		Set keySet = employ_data.keySet();
 		Iterator keyIte = keySet.iterator();
 		int i = 0;
@@ -493,41 +497,50 @@ public class TopActivity extends Activity implements View.OnClickListener {
 			String key = keyIte.next().toString(); // 社員ID
 			String value = employ_data.get(key); // 社員氏名
 			employ_list.add(value);
-			
+
 			// 社員情報のDB登録
 			td.EmployDBInsert(key, value);
 			i++;
 			// System.out.println(key + "=" + value);
 		}
 		// Log.d("debug", employ_list.toString());
-		
+
 		spinner = (Spinner) findViewById(R.id.employ_select);
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
 				android.R.layout.simple_spinner_item, employ_list);
 
 		adapter.setDropDownViewResource(R.layout.employ_list);
-		// 表題
 		// spinner.setPrompt("社員情報を選択して下さい");
 		spinner.setSelection(0);
-		
+
 		spinner.setAdapter(adapter);
 		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 			@Override
 			public void onItemSelected(AdapterView<?> parent, View view,
 					int position, long id) {
+
 				Spinner spinner = (Spinner) parent;
 				String item = (String) spinner.getSelectedItem();
-				// Toast.makeText(TopActivity.this,
-				// String.format("%sが選択されました。", item),
-				// Toast.LENGTH_SHORT).show();
+
+				final Set keySet = employ_data.keySet();
+				final Iterator keyIte = keySet.iterator();
+
+				while (keyIte.hasNext()) {
+					String key = keyIte.next().toString(); // 社員ID
+					String name = employ_data.get(key); // 社員氏名
+
+					// 名前選択時に「選択氏名」と社員データが一致すれば
+					// 勤怠マスタにDB登録(社員ID)
+					if (item.equals(name)) {
+						td.preKintaiSave(sdf.format(date), key); // 社員ID登録
+					}
+				}
 			}
 
 			@Override
 			public void onNothingSelected(AdapterView<?> parent) {
 				// Spinnerで何も選択されなかった場合の動作
 				// 初期値はココでセットする
-				// Toast.makeText(TopActivity.this,
-				// "onNothingSelected", Toast.LENGTH_SHORT).show();
 			}
 		});
 	}
