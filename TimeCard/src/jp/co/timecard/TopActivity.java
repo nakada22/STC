@@ -271,6 +271,17 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		final TextView end_tv = (TextView) findViewById(R.id.last_time2); // 終業時刻
 		final TextView break_tv = (TextView) findViewById(R.id.bleak_time2); // 休憩時間
 		final TextView sumtime_tv = (TextView) findViewById(R.id.sum_time2); // 合計時間
+		spinner = (Spinner) findViewById(R.id.employ_select);
+
+		// 選択されている社員名
+		String employee_name = spinner.getSelectedItem().toString();
+
+		// 「社員名」未選択時は、登録処理を行わない
+		if (employee_name.equals("社員情報を選択して下さい")) {
+			Toast.makeText(TopActivity.this, "社員名が未選択です", Toast.LENGTH_SHORT)
+					.show();
+			return;
+		}
 
 		// 退勤マスタ・休憩マスタへDB登録（画面で設定した時刻）
 		TextView leave_tv = (TextView) findViewById(R.id.currenttime);
@@ -279,16 +290,11 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		// まだ未出勤の場合は、退勤記録をしないようにする
 		String currenttime = timestamp_sdf.format(Calendar.getInstance()
 				.getTime());
-		final CheckBox checkBox = (CheckBox) findViewById(R.id.checkBox1);
 		boolean leave_flg;
 
-		if (checkBox.isChecked() == true) {
-			// 現在時刻使用チェック時、現在時刻で退勤時刻を記録
-			leave_flg = td.LeaveofficeSave(sdf.format(date), currenttime, null);
-		} else {
-			leave_flg = td.LeaveofficeSave(sdf.format(date), currenttime,
-					leave_tv);
-		}
+		// 現在時刻使用チェック時、現在時刻で退勤時刻を記録
+		leave_flg = td.LeaveofficeSave(sdf.format(date), currenttime, null,
+				employee_name);
 
 		// まだ未出勤の場合
 		if (leave_flg == false) {
@@ -299,11 +305,13 @@ public class TopActivity extends Activity implements View.OnClickListener {
 				Toast.makeText(TopActivity.this, "退勤", Toast.LENGTH_SHORT)
 						.show();
 			}
+			td.preBreakSave(sdf.format(date), currenttime, employee_name);
+			td.TopTimeDisp(sdf.format(date), start_tv, end_tv, break_tv,
+					sumtime_tv);
+
 		}
 
-		td.preBreakSave(sdf.format(date), currenttime);
-		td.TopTimeDisp(sdf.format(date), start_tv, end_tv, break_tv, sumtime_tv);
-
+		//
 		// 退勤ボタン押下後に、Spinnerを初期値にもどす(３秒間Sleepさせる)
 		new Thread(new Runnable() {
 			public void run() {
@@ -518,6 +526,16 @@ public class TopActivity extends Activity implements View.OnClickListener {
 			@Override
 			public void onItemSelected(AdapterView<?> parent, View view,
 					int position, long id) {
+
+				// 変更時、画面の時刻表示を一旦リセットする。
+				final TextView start_tv = (TextView) findViewById(R.id.start_time2); // 始業時刻
+				final TextView end_tv = (TextView) findViewById(R.id.last_time2); // 終業時刻
+				final TextView break_tv = (TextView) findViewById(R.id.bleak_time2); // 休憩時間
+				final TextView sumtime_tv = (TextView) findViewById(R.id.sum_time2); // 合計時間
+				start_tv.setText("");
+				end_tv.setText("");
+				break_tv.setText("");
+				sumtime_tv.setText("");
 
 				Spinner spinner = (Spinner) parent;
 				String item = (String) spinner.getSelectedItem();

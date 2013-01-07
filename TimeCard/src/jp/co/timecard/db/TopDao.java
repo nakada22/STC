@@ -25,21 +25,22 @@ public class TopDao {
 		helper = new DbOpenHelper(context);
 		cv = new ContentValues();
 	}
-	
+
 	/**
-	 * 外部キーとして使用される社員ID登録メソッド(spinner選択時)
+	 * 外部キーとして使用される社員ID登録メソッド(spinner選択時) 
 	 * 但しアプリ起動日付のデータがある時は、Insertしない
 	 * @return None
-	 * @param str 当日日付
+	 * @param str
+	 *            当日日付
 	 */
 	public void preKintaiSave(String kintai_date, String employee_id) {
 		// 勤怠マスタにデータがあるか、なければInsert
 		SQLiteDatabase db = helper.getWritableDatabase();
 
-		//db.execSQL("DELETE FROM mst_kintai;");
+		// db.execSQL("DELETE FROM mst_kintai;");
 		c = db.query(true, DbConstants.TABLE_NAME1, null, "employee_id=?",
 				new String[] { employee_id }, null, null, null, null);
-		
+
 		// long ret;
 		if (c.getCount() == 0) {
 			// データが0件であれば勤怠マスタ登録
@@ -54,17 +55,18 @@ public class TopDao {
 	}
 
 	/**
-	 * 時刻設定マスタのデータ登録メソッド
-	 * (アプリ起動時１回のみ)
+	 * 時刻設定マスタのデータ登録メソッド (アプリ起動時１回のみ)
+	 * 
 	 * @return None
-	 * @param str 現在日時
+	 * @param str
+	 *            現在日時
 	 */
 	public void preTimeSave(String str) {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		// db.execSQL("DELETE FROM mst_initime;");
 		c = db.query(true, DbConstants.TABLE_NAME5, null, null, null, null,
 				null, null, null);
-		
+
 		if (c.getCount() == 0) {
 			// データが0件であれば時刻設定マスタ登録
 			try {
@@ -80,33 +82,49 @@ public class TopDao {
 			}
 		}
 	}
-	
+
 	/**
 	 * 休憩マスタの当日日付データ登録(退勤ボタン押下時)メソッド
 	 * 
 	 * @return None
-	 * @param kintai_date 勤怠日付
-	 * @param kintai_date_time 現在日時
+	 * @param break_date
+	 *            休憩日付
+	 * @param kintai_date_time
+	 *            現在日時
+	 * @param employee_name
+	 *            社員名
 	 */
-	public void preBreakSave(String kintai_date, String kintai_date_time) {
+	public void preBreakSave(String break_date, String kintai_date_time,
+			String employee_name) {
+
 		SQLiteDatabase db = helper.getWritableDatabase();
 		// db.execSQL("DELETE FROM mst_break;");
-		c = db.rawQuery("SELECT mk.kintai_id, mi.break_time FROM "
-				+ "mst_kintai mk, mst_initime mi WHERE mk."
-				+ DbConstants.COLUMN_KINTAI_DATE + "='" + kintai_date + "'",
-				null);
+		ContentValues cv = null;
+		cv = new ContentValues();
 
+		// 社員ID取得SQL
+		String SQL = "(SELECT employee_id FROM mst_trainee WHERE employee_name='"
+				+ employee_name + "')";
+
+		c = db.rawQuery("SELECT mk.employee_id, mi.break_time FROM "
+				+ "mst_kintai mk, mst_initime mi WHERE " + "mk.kintai_date='"
+				+ break_date + "' " + "AND mk.employee_id=" + SQL, null);
+
+		// Log.d("debug",employee_name);
 		if (c.moveToFirst()) {
-			String kintai_id = c.getString(c.getColumnIndex("kintai_id"));
+			String employee_id = c.getString(c.getColumnIndex("employee_id"));
 			String break_time = c.getString(c.getColumnIndex("break_time"));
 
 			Cursor c2 = db.rawQuery("SELECT * FROM " + "mst_break WHERE "
-					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + kintai_id, null);
+					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id
+					+ " AND " + DbConstants.COLUMN_BREAK_DATE + "='"
+					+ break_date + "'", null);
 
 			// データがなければInsert
 			if (c2.getCount() == 0) {
 				try {
-					cv.put(DbConstants.COLUMN_EMPLOYEE_ID, kintai_id);
+					cv.put(DbConstants.COLUMN_EMPLOYEE_ID, employee_id);
+					cv.put(DbConstants.COLUMN_BREAK_DATE, break_date);
 					cv.put(DbConstants.COLUMN_BREAK_TIME, break_time);
 					cv.put(DbConstants.COLUMN_REGIST_DATETIME, kintai_date_time);
 					cv.put(DbConstants.COLUMN_UPDATE_DATETIME, kintai_date_time);
@@ -123,10 +141,14 @@ public class TopDao {
 	 * 出勤マスタのデータ登録メソッド
 	 * 
 	 * @return true or false
-	 * @param kintai_date 出勤日
-	 * @param kintai_date_time 出勤時刻
-	 * @param atd_time 出勤時刻TextView
-	 * @param employee_name 社員名
+	 * @param kintai_date
+	 *            出勤日
+	 * @param kintai_date_time
+	 *            出勤時刻
+	 * @param atd_time
+	 *            出勤時刻TextView
+	 * @param employee_name
+	 *            社員名
 	 */
 	public boolean AttendanceSave(String kintai_date, String kintai_date_time,
 			TextView atd_time, String employee_name) {
@@ -135,28 +157,28 @@ public class TopDao {
 		// Insertする社員ID取得
 		c = db.query(true, DbConstants.TABLE_NAME6, null, "employee_name=?",
 				new String[] { employee_name }, null, null, null, null);
-		
+
 		if (c.moveToFirst()) {
 			String employee_id = c.getString(c.getColumnIndex("employee_id"));
 			String ins_atd_time;
 
 			// 現在時刻使用チェック時
-			//if (atd_time != null) {
-			//	ins_atd_time = atd_time.getText().toString();// 画面表示時刻で登録
-			//} else {
+			// if (atd_time != null) {
+			// ins_atd_time = atd_time.getText().toString();// 画面表示時刻で登録
+			// } else {
 			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");// 現在時刻で登録
 			ins_atd_time = sdf.format(Calendar.getInstance().getTime());
-			//}
+			// }
 
 			Cursor c2 = db.rawQuery("SELECT * FROM " + "mst_attendance WHERE "
 					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id
 					+ " AND attendance_date='" + kintai_date + "'", null);
-			
+
 			// 既に退勤済の場合は、更新処理を行わない
 			Cursor c3 = db.rawQuery("SELECT * FROM " + "mst_leaveoffice WHERE "
 					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id
 					+ " AND leaveoffice_date='" + kintai_date + "'", null);
-			
+
 			if (c2.getCount() == 0) {
 				// データがなければ新規登録
 				try {
@@ -180,8 +202,8 @@ public class TopDao {
 						cv.put(DbConstants.COLUMN_UPDATE_DATETIME,
 								kintai_date_time);
 						db.update(DbConstants.TABLE_NAME2, cv,
-								DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id,
-								null);
+								DbConstants.COLUMN_EMPLOYEE_ID + "="
+										+ employee_id, null);
 					} finally {
 						db.close();
 					}
@@ -194,25 +216,30 @@ public class TopDao {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * 出勤時刻表示用メソッド
 	 * 
 	 * @return None
-	 * @param atd_date  出勤日
-	 * @param tv 表示TextView
+	 * @param atd_date
+	 *            出勤日
+	 * @param tv
+	 *            表示TextView
+	 * @param employee_name
+	 *            社員名
 	 */
-	public void AttendanceTimeDisp(String atd_date, TextView tv, String employ_name) {
-		
+	public void AttendanceTimeDisp(String atd_date, TextView tv,
+			String employee_name) {
+
 		SQLiteDatabase db = helper.getWritableDatabase();
 		// 社員ID取得SQL
 		String SQL = "(SELECT employee_id FROM mst_trainee WHERE employee_name='"
-					+ employ_name + "')";
-		
+				+ employee_name + "')";
+
 		c = db.rawQuery("SELECT attendance_time FROM " + "mst_attendance "
 				+ " WHERE " + DbConstants.COLUMN_ATTENDANCE_DATE + "='"
 				+ atd_date + "' AND employee_id=" + SQL, null);
-		
+
 		if (c.moveToFirst()) {
 			String attendance_time = c.getString(c
 					.getColumnIndex("attendance_time"));
@@ -224,46 +251,55 @@ public class TopDao {
 	 * 退勤マスタのデータ登録メソッド
 	 * 
 	 * @return true or false
-	 * @param kintai_date  勤怠日
-	 * @param kintai_date_time 勤怠時刻
-	 * @param leave_time 退勤時刻
+	 * @param kintai_date
+	 *            勤怠日
+	 * @param kintai_date_time
+	 *            勤怠時刻
+	 * @param leave_time
+	 *            退勤時刻
+	 * @param employee_name
+	 *            社員名
 	 */
 	public boolean LeaveofficeSave(String kintai_date, String kintai_date_time,
-			TextView leave_time) {
+			TextView leave_time, String employee_name) {
+
 		SQLiteDatabase db = helper.getWritableDatabase();
 		// db.execSQL("DELETE FROM mst_leaveoffice;");
 
-		// Insertする謹怠ID取得
-		c = db.rawQuery("SELECT mk.kintai_id FROM " + "mst_kintai mk"
-				+ " WHERE mk." + DbConstants.COLUMN_KINTAI_DATE + "='"
-				+ kintai_date + "'", null);
+		// Insertする社員ID取得
+		c = db.query(true, DbConstants.TABLE_NAME6, null, "employee_name=?",
+				new String[] { employee_name }, null, null, null, null);
 
 		if (c.moveToFirst()) {
-			String kintai_id = c.getString(c.getColumnIndex("kintai_id"));
+			String employee_id = c.getString(c.getColumnIndex("employee_id"));
 			String ins_leave_time;
 
 			// 現在時刻使用チェック時
-			if (leave_time != null) {
-				ins_leave_time = leave_time.getText().toString();// 画面表示時刻で登録
-			} else {
-				SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");// 現在時刻で登録
-				ins_leave_time = sdf.format(Calendar.getInstance().getTime());
-			}
+			// if (leave_time != null) {
+			// ins_leave_time = leave_time.getText().toString();// 画面表示時刻で登録
+			// } else {
+			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");// 現在時刻で登録
+			ins_leave_time = sdf.format(Calendar.getInstance().getTime());
+			// }
 
 			Cursor c2 = db.rawQuery("SELECT * FROM " + "mst_leaveoffice WHERE "
-					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + kintai_id, null);
+					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id
+					+ " AND leaveoffice_date='" + kintai_date + "'", null);
 
+			// 既に退勤済の場合は、更新処理を行わない
 			Cursor c3 = db.rawQuery("SELECT * FROM " + "mst_attendance WHERE "
-					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + kintai_id, null);
+					+ DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id
+					+ " AND attendance_date='" + kintai_date + "'", null);
 
 			if (c2.getCount() == 0) {
+
 				// 退勤記録がなくても、出勤記録もなければ新規登録は行わない
 				if (c3.getCount() == 0) {
 					// Toast表示
 					return false;
 				} else {
 					try {
-						cv.put(DbConstants.COLUMN_EMPLOYEE_ID, kintai_id);
+						cv.put(DbConstants.COLUMN_EMPLOYEE_ID, employee_id);
 						cv.put(DbConstants.COLUMN_LEAVEOFFICE_DATE, kintai_date);
 						cv.put(DbConstants.COLUMN_LEAVEOFFICE_TIME,
 								ins_leave_time);
@@ -282,14 +318,14 @@ public class TopDao {
 					cv.put(DbConstants.COLUMN_LEAVEOFFICE_TIME, ins_leave_time);
 					cv.put(DbConstants.COLUMN_UPDATE_DATETIME, kintai_date_time);
 					db.update(DbConstants.TABLE_NAME3, cv,
-							DbConstants.COLUMN_EMPLOYEE_ID + "=" + kintai_id,
+							DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id,
 							null);
 				} finally {
 					db.close();
 				}
 			}
 		} else {
-			// 勤怠Idがない場合(出勤記録がない場合)
+			// 社員IDがない場合(出勤記録がない場合)
 			return false;
 		}
 		return true;
@@ -300,14 +336,18 @@ public class TopDao {
 	 * 
 	 * @return なし
 	 * @param leave_date
-	 * @param tv1 始業時刻
-	 * @param tv2 終業時刻
-	 * @param tv3 休憩時間
-	 * @param tv4 合計時間
+	 * @param tv1
+	 *            始業時刻
+	 * @param tv2
+	 *            終業時刻
+	 * @param tv3
+	 *            休憩時間
+	 * @param tv4
+	 *            合計時間
 	 */
 	public void TopTimeDisp(String leave_date, TextView tv1, TextView tv2,
 			TextView tv3, TextView tv4) {
-		
+
 		SQLiteDatabase db = helper.getWritableDatabase();
 		c = db.rawQuery(
 				"SELECT ml.leaveoffice_time, mb.break_time, ma.attendance_time"
@@ -355,7 +395,7 @@ public class TopDao {
 	 * パスワードマスタのデータ登録メソッド (アプリ起動時１回のみ)
 	 * 
 	 * @return なし
-	 * @param  なし
+	 * @param なし
 	 */
 	public void prePassWordSave() {
 
@@ -367,7 +407,7 @@ public class TopDao {
 		// 初期パスワード(月次, 基本時間, パスワード設定)
 		String[] pass_str = new String[] { "test1", "test2", "test3" };
 		String[] screen_str = new String[] { "monthly", "basetime", "password" };
-		
+
 		if (c.getCount() == 0) {
 			// データが0件であれば時刻設定マスタ登録
 			try {
@@ -386,7 +426,8 @@ public class TopDao {
 	 * パスワードマスタのパスワード取得処理
 	 * 
 	 * @return password パスワード
-	 * @param screen_id 画面ID
+	 * @param screen_id
+	 *            画面ID
 	 */
 	public String PassWordGet(String screen_id) {
 		SQLiteDatabase db = helper.getWritableDatabase();
@@ -404,8 +445,10 @@ public class TopDao {
 	 * 社員情報ファイルのデータDB登録処理
 	 * 
 	 * @return なし
-	 * @param employ_num  社員ID
-	 * @param employ_name 社員名
+	 * @param employ_num
+	 *            社員ID
+	 * @param employ_name
+	 *            社員名
 	 */
 	public void EmployDBInsert(String employ_num, String employ_name) {
 
