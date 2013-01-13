@@ -217,20 +217,24 @@ public class Dao {
 	/*
 	 * 日次画面の休憩時間timePickerDialog用の取得メソッド
 	 * */
-	public String BreakTimeGet(String date){
+	public String BreakTimeGet(String employee_id, String date){
 		SQLiteDatabase db = helper.getWritableDatabase();
 		String break_time = null;
 
 		try {
-			// 勤怠idを取得
+			// 社員idを取得
 			Cursor c = db.rawQuery("SELECT mb.break_time FROM mst_break mb " +
-					"WHERE mb.kintai_id=(SELECT mk.kintai_id FROM mst_kintai mk " +
-					"WHERE mk.kintai_date=?)", 
-					new String[]{date});
+					"WHERE mb.employee_id=? AND mb.break_date=?", 
+					new String[]{employee_id, date});
+			//Log.d("debug",employee_id);
+			//Log.d("debug",date);
+			
 			if (c.moveToFirst() && c.getCount() != 0){
 				// 休憩記録があれば
+				//Log.d("debug","休憩記録があれば");
 				break_time = c.getString(0);
 			} else {
+				//Log.d("debug","休憩記録がなければ時刻設定マスタ");
 				// 休憩記録がなければ時刻設定マスタの休憩時間を取得
 				String[] default_param = DailyDefaultTime();
 				break_time = default_param[2];

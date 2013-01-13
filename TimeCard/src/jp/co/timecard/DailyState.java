@@ -15,7 +15,7 @@ public class DailyState implements Serializable {
 	private String break_time;
 	private String work_hour;
 	private String mon_target;
-	private int employee_id;
+	private String month_employ_select;
 	
 	public void setDate(String _date) {
 		this.date = _date;
@@ -34,11 +34,11 @@ public class DailyState implements Serializable {
 	public void setAttendance(String _attendance) {
 		this.attendance = _attendance;
 	}
-	public void setEmployeeid(int _employee_id) {
-		this.employee_id = _employee_id;
+	public void setMonthEmploySelect(String _month_employ_select) {
+		this.month_employ_select = _month_employ_select;
 	}
-	public int Employeeid() {
-		return this.employee_id;
+	public String getMonthEmploySelect() {
+		return this.month_employ_select;
 	}
 	
 	public String getAttendance() {

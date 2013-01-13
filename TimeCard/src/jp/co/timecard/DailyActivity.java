@@ -36,7 +36,8 @@ public class DailyActivity extends Activity {
 	TextView tvAttendance;
 	TextView tvLeave;
 	TextView tvBreak;
-
+	TextView tvEmployeeName;
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.daily_main);
@@ -47,7 +48,9 @@ public class DailyActivity extends Activity {
 		//画面遷移直後の表示(月次画面リストで値がない場合は、mst_initimeの値をセットとする)
 		final String date = ds.getTargetDate(); // YYYY/MM/DD
 		final Dao dao = new Dao(getApplicationContext());
-		String[] default_param = dao.DailyDefaultTime(); // mst_initimeの値
+		String[] default_param = dao.DailyDefaultTime();  // mst_initimeの値
+		String employee_name = ds.getMonthEmploySelect(); // 選択された社員名
+		
 		
 		String attendance = null;
 		String leave = null;
@@ -80,13 +83,15 @@ public class DailyActivity extends Activity {
 		tvAttendance = (TextView) findViewById(R.id.daily_attendance);
 		tvLeave = (TextView) findViewById(R.id.daily_leave);
 		tvBreak = (TextView) findViewById(R.id.daily_break);
-
+		tvEmployeeName = (TextView) findViewById(R.id.employee_name);
+		
 		tvDate.setText(strArray[0]+"/" +strArray[1]+"/" + strArray[2]
 				+ "("+week_name[week]+")");
 		tvAttendance.setText(attendance);
 		tvLeave.setText(leave);
 		tvBreak.setText(break_time);
-
+		tvEmployeeName.setText(employee_name);
+		
 		// 「前」ボタン
 		Button bPre = (Button) findViewById(R.id.button_pre_day);
 		bPre.setOnClickListener(new OnClickListener() {
@@ -143,7 +148,7 @@ public class DailyActivity extends Activity {
 							(String) tvLeave.getText(),
 							(String) tvBreak.getText(),date});
 				}
-				Toast.makeText(getApplicationContext(), "謹怠記録を登録しました。", Toast.LENGTH_SHORT).show();
+				Toast.makeText(getApplicationContext(), "勤怠記録を登録しました。", Toast.LENGTH_SHORT).show();
 			}
 		});
 
@@ -238,8 +243,10 @@ public class DailyActivity extends Activity {
 		Dao dao = new Dao(getApplicationContext());
 		Intent i = getIntent();
 		DailyState ds = (DailyState) i.getSerializableExtra("DailyState");
-		final String date = ds.getDate();
-		
+		final String date = ds.getTargetDate();
+		final String employee_id = (ds.getMonthEmploySelect())
+				.substring(0, 4);
+	    
 		public MyListener(int layout_id) {
 			super();
 			switch (layout_id) {
@@ -256,7 +263,7 @@ public class DailyActivity extends Activity {
 			case R.id.daily_break:
 				this.layout_id = layout_id;
 				// 休憩時間は画面表示されていないのでDBから取ってくる必要がある
-				String break_time = dao.BreakTimeGet(date);
+				String break_time = dao.BreakTimeGet(employee_id, date);
 				//Log.d("debug",break_time);
 				
 		    	hourOfDay = Integer.parseInt(break_time.substring(0, 2));

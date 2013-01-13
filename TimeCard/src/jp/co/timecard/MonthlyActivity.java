@@ -27,9 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * 月次画面。
- * 
- * @author TomohiroTano
+ * 月次画面
  */
 public class MonthlyActivity extends Activity implements View.OnClickListener {
 
@@ -175,7 +173,8 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 	public void createCalender(String employee_id) {
 
 		final ArrayList<DailyState> dayOfMonth = new ArrayList<DailyState>();
-
+		// 選択されている社員名
+		String employ_name = spinner.getSelectedItem().toString();
 		Dao dao = new Dao(this);
 
 		int dom = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
@@ -186,7 +185,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 			String crrent_mMonth = String.format("%1$02d", mMonth + 1);
 			String disp_date = String.format("%1$02d", i) + "日";
 			ds.setDate(disp_date);
-
+			
 			String date_param = mYear + "/" + crrent_mMonth + "/"
 					+ String.format("%1$02d", i);
 			ds.setTargetDate(date_param);
@@ -212,12 +211,13 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 				ds.setAttendance(attendance_time);
 				ds.setLeave(leaveoffice_time);
 				ds.setBreakTime(break_time);
+				ds.setMonthEmploySelect(employee_id+":"+employ_name); // 社員id:社員名
 				dayOfMonth.add(ds);
 			} catch (java.text.ParseException e) {
 				e.printStackTrace();
 			}
 		}
-
+		
 		MonthlyAdapter la = new MonthlyAdapter(getApplicationContext(),
 				android.R.layout.simple_list_item_1, dayOfMonth);
 		ListView lv = (ListView) findViewById(R.id.listview);
