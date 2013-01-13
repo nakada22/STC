@@ -149,10 +149,10 @@ public class DailyActivity extends Activity {
 
 		// 「削除」ボタン
 		Button bDelete = (Button) findViewById(R.id.button_delete);
-		// 勤怠記録がない場合は、「削除」ボタンは非表示にする
-		if(Arrays.binarySearch(dao.MonthlyList(date), "") == 1) {
-			bDelete.setVisibility(View.INVISIBLE);
-		}
+		//TODO 勤怠記録がない場合は、「削除」ボタンは非表示にする
+//		if(Arrays.binarySearch(dao.MonthlyList(date), "") == 1) {
+//			bDelete.setVisibility(View.INVISIBLE);
+//		}
 		
 		bDelete.setOnClickListener(new OnClickListener() {
 			@Override
@@ -209,13 +209,13 @@ public class DailyActivity extends Activity {
 		
 		//Log.d("debug", Integer.toString(Arrays.binarySearch(dao.MonthlyList(dispdate), "")));
 		
-		if(Arrays.binarySearch(dao.MonthlyList(dispdate), "") == -1) {
-			// 勤怠記録がある場合は、「削除」ボタンは表示にする
-			bDelete.setVisibility(View.VISIBLE);
-		} else {
-			// 勤怠記録がない場合は、「削除」ボタンは非表示にする
-			bDelete.setVisibility(View.INVISIBLE);
-		}
+//		if(Arrays.binarySearch(dao.MonthlyList(dispdate), "") == -1) {
+//			//TODO 勤怠記録がある場合は、「削除」ボタンは表示にする
+//			bDelete.setVisibility(View.VISIBLE);
+//		} else {
+//			//TODO 勤怠記録がない場合は、「削除」ボタンは非表示にする
+//			bDelete.setVisibility(View.INVISIBLE);
+//		}
 		
 		String attendance = kintaiparam[0];
 		String leave = kintaiparam[1];

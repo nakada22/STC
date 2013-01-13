@@ -566,7 +566,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	/*
 	 * ネット接続 (社員情報ゲット)
 	 */
-	private Map<String, String> doNet(String u) {
+	public Map<String, String> doNet(String u) {
 		// HashMapからMapのインスタンスを生成(戻り値用文字列 )
 		Map<String, String> ret = new HashMap<String, String>();
 

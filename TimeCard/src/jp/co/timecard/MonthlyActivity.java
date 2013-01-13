@@ -1,10 +1,13 @@
 package jp.co.timecard;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import jp.co.timecard.db.Dao;
 import android.app.Activity;
@@ -12,12 +15,16 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * 月次画面。
@@ -29,9 +36,13 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 	private Calendar cal;
 	private int mYear;
 	private int mMonth;
-
+	public String employee_id;
+	
 	final int PRE_MONTH = -1;
 	final int NEX_MONTH = 1;
+	final String con_url = "http://sashihara.web.fc2.com/employ_info.csv";
+
+	Spinner spinner;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -41,11 +52,14 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 		// 表示する年月（最初は現在の年月）
 		cal = Calendar.getInstance();
 
+		// 社員情報プルダウン表示
+		employ_select();
+
 		// 初期表示月のセット
 		setTargetMonth(0);
 
 		// 表示月のカレンダーを作成
-		createCalender();
+		// createCalender(employee_id);
 
 		// 前月ボタン
 		findViewById(R.id.button_pre_month).setOnClickListener(this);
@@ -59,11 +73,11 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 		switch (v.getId()) {
 		case R.id.button_pre_month:
 			setTargetMonth(PRE_MONTH);
-			createCalender();
+			createCalender(employee_id);
 			break;
 		case R.id.button_next_month:
 			setTargetMonth(NEX_MONTH);
-			createCalender();
+			createCalender(employee_id);
 			break;
 		default:
 			break;
@@ -74,10 +88,12 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		getMenuInflater().inflate(R.menu.menu, menu);
-		
+
 		// Icon Set
-		menu.findItem(R.id.finish).setIcon(android.R.drawable.ic_menu_close_clear_cancel);
-		menu.findItem(R.id.return_top).setIcon(android.R.drawable.ic_menu_revert);
+		menu.findItem(R.id.finish).setIcon(
+				android.R.drawable.ic_menu_close_clear_cancel);
+		menu.findItem(R.id.return_top).setIcon(
+				android.R.drawable.ic_menu_revert);
 		menu.findItem(R.id.rec_export).setIcon(android.R.drawable.ic_menu_save);
 
 		return true;
@@ -124,14 +140,14 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 					});
 			dlg.create().show();
 			return true;
-			
+
 		case R.id.rec_export:
-			//TODO 勤怠記録出力
-			
+			// TODO 勤怠記録出力
+
 			return true;
-			
+
 		}
-	
+
 		return super.onOptionsItemSelected(item);
 	}
 
@@ -156,7 +172,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 	/**
 	 * 月次データを取得し、ListViewに表示する。
 	 */
-	public void createCalender() {
+	public void createCalender(String employee_id) {
 
 		final ArrayList<DailyState> dayOfMonth = new ArrayList<DailyState>();
 
@@ -164,7 +180,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 
 		int dom = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
 		for (int i = 1; i <= dom; i++) {
-			// DBから勤怠を取得してくる（なければ空欄）
+			// DBから選択された社員の勤怠情報を取得してくる（なければ空欄）
 			DailyState ds = new DailyState();
 
 			String crrent_mMonth = String.format("%1$02d", mMonth + 1);
@@ -176,7 +192,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 			ds.setTargetDate(date_param);
 
 			// 戻り値より出勤時刻・退勤時刻を取得
-			String[] daily_param = dao.MonthlyList(date_param);
+			String[] daily_param = dao.MonthlyList(date_param, employee_id);
 			String attendance_time = daily_param[0];
 			String leaveoffice_time = daily_param[1];
 			String break_time = daily_param[2];
@@ -217,4 +233,87 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 			}
 		});
 	}
+
+	/*
+	 * 社員情報プルダウン表示
+	 */
+	private void employ_select() {
+		TopActivity ta = new TopActivity();
+
+		// 社員情報ファイルよりデータ取得
+		List<String> employ_list = new ArrayList<String>();// 社員リスト
+
+		// ネットから社員データ取得
+		final Map<String, String> employ_data = ta.doNet(con_url);
+
+		Set keySet = employ_data.keySet();
+		Iterator keyIte = keySet.iterator();
+		int i = 0;
+
+		while (keyIte.hasNext()) {
+			if (i == 0) {
+				// 最初だけ「社員情報選択」の文言入れる
+				employ_list.add("社員情報を選択して下さい");
+			}
+			String key = keyIte.next().toString(); // 社員ID
+			String value = employ_data.get(key); // 社員氏名
+			employ_list.add(value);
+
+			i++;
+			// System.out.println(key + "=" + value);
+		}
+		// Log.d("debug", employ_list.toString());
+
+		spinner = (Spinner) findViewById(R.id.month_employ_select);
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_spinner_item, employ_list);
+
+		adapter.setDropDownViewResource(R.layout.employ_list);
+
+		spinner.setAdapter(adapter);
+		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View view,
+					int position, long id) {
+
+				// 変更時、選択された社員の月次情報を画面に表示する。
+				Spinner spinner = (Spinner) parent;
+				String item = (String) spinner.getSelectedItem();
+
+				final Set keySet = employ_data.keySet();
+				final Iterator keyIte = keySet.iterator();
+
+				while (keyIte.hasNext()) {
+					employee_id = keyIte.next().toString(); 	// 社員ID
+					String name = employ_data.get(employee_id); // 社員氏名
+					
+					if (item.equals("社員情報を選択して下さい")) {
+						// 初期化(非表示)デフォルト時
+						final ArrayList<DailyState> dayOfMonth = new ArrayList<DailyState>();
+						MonthlyAdapter la = new MonthlyAdapter(getApplicationContext(),
+								android.R.layout.simple_list_item_1, dayOfMonth);
+						ListView lv = (ListView) findViewById(R.id.listview);
+						lv.setAdapter(la);
+						return;
+					} else if (item.equals(name)) {
+						// 名前選択時に「選択氏名」と社員データが一致すれば
+						// 月次情報を表示
+						createCalender(employee_id);
+						Toast.makeText(MonthlyActivity.this,
+								name+"さんの月次情報を表示しました。", Toast.LENGTH_LONG)
+								.show();
+						return;
+					}
+
+				}
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> parent) {
+				// Spinnerで何も選択されなかった場合の動作
+				// 初期値はココでセットする
+			}
+		});
+	}
+
 }
