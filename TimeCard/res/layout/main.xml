@@ -25,22 +25,19 @@
    </TableRow>
 </TableLayout>
 
-<TableLayout
-       android:layout_width="fill_parent"
-       android:layout_height="wrap_content"
-       android:background="@layout/top_back" >
-	<TableRow>
-		<!-- 社員情報選択プルダウン -->
-		<Spinner
-		    android:id="@+id/employ_select"
-		    android:layout_width="fill_parent"
-		    android:layout_height="wrap_content"
-		    android:layout_marginLeft="10dp"
-		    android:prompt="@string/employ_select"
-		    android:gravity="center"
-	    />
-	</TableRow>
-</TableLayout>
+<TableRow
+	android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="#FFFFFF">
+	<!-- 社員情報選択プルダウン -->
+	<Spinner
+	    android:id="@+id/employ_select"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:prompt="@string/employ_select"
+	    android:gravity="center"
+    />
+</TableRow>
 	
 
 <TableLayout
