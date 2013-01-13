@@ -401,6 +401,8 @@ public class TopDao {
 
 		SQLiteDatabase db = helper.getWritableDatabase();
 		// db.execSQL("DELETE FROM mst_password;");
+		ContentValues cv = null;
+		cv = new ContentValues();
 		c = db.query(true, DbConstants.TABLE_NAME7, null, null, null, null,
 				null, null, null);
 
