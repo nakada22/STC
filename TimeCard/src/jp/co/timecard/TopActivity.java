@@ -57,7 +57,8 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	SimpleDateFormat timestamp_sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	Spinner spinner;
 	Handler mHandler = new Handler();
-
+	private String employee_id;
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -123,7 +124,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		TopDao td = new TopDao(getApplicationContext());
 
 		td.preTimeSave(timestamp_sdf.format(date)); //
-		td.TopTimeDisp(sdf.format(date), start_tv, end_tv, break_tv, sumtime_tv);
+		//td.TopTimeDisp(sdf.format(date), start_tv, end_tv, break_tv, sumtime_tv,employee_name);
 		td.prePassWordSave(); // 初期パスワード発行
 		// http://zuccyimemo.blog.fc2.com/blog-entry-1.html
 
@@ -307,7 +308,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 			}
 			td.preBreakSave(sdf.format(date), currenttime, employee_name);
 			td.TopTimeDisp(sdf.format(date), start_tv, end_tv, break_tv,
-					sumtime_tv);
+					sumtime_tv, employee_name);
 
 		}
 
@@ -544,13 +545,13 @@ public class TopActivity extends Activity implements View.OnClickListener {
 				final Iterator keyIte = keySet.iterator();
 
 				while (keyIte.hasNext()) {
-					String key = keyIte.next().toString(); // 社員ID
-					String name = employ_data.get(key); // 社員氏名
+					employee_id = keyIte.next().toString(); // 社員ID
+					String name = employ_data.get(employee_id); // 社員氏名
 
 					// 名前選択時に「選択氏名」と社員データが一致すれば
 					// 勤怠マスタにDB登録(社員ID)
 					if (item.equals(name)) {
-						td.preKintaiSave(sdf.format(date), key); // 社員ID登録
+						td.preKintaiSave(sdf.format(date), employee_id); // 社員ID登録
 					}
 				}
 			}

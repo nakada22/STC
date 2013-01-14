@@ -38,8 +38,8 @@ public class TopDao {
 		SQLiteDatabase db = helper.getWritableDatabase();
 
 		// db.execSQL("DELETE FROM mst_kintai;");
-		c = db.query(true, DbConstants.TABLE_NAME1, null, "employee_id=?",
-				new String[] { employee_id }, null, null, null, null);
+		c = db.query(true, DbConstants.TABLE_NAME1, null, "employee_id=? AND kintai_date=?",
+				new String[] { employee_id,kintai_date }, null, null, null, null);
 
 		// long ret;
 		if (c.getCount() == 0) {
@@ -318,7 +318,8 @@ public class TopDao {
 					cv.put(DbConstants.COLUMN_LEAVEOFFICE_TIME, ins_leave_time);
 					cv.put(DbConstants.COLUMN_UPDATE_DATETIME, kintai_date_time);
 					db.update(DbConstants.TABLE_NAME3, cv,
-							DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id,
+							DbConstants.COLUMN_EMPLOYEE_ID + "=" + employee_id+
+							" AND leaveoffice_date='" + kintai_date + "'",
 							null);
 				} finally {
 					db.close();
@@ -346,14 +347,19 @@ public class TopDao {
 	 *            合計時間
 	 */
 	public void TopTimeDisp(String leave_date, TextView tv1, TextView tv2,
-			TextView tv3, TextView tv4) {
-
+			TextView tv3, TextView tv4, String employee_name) {
+		
+		// 社員ID取得SQL
+		String SQL = "(SELECT employee_id FROM mst_trainee WHERE employee_name='"
+				+ employee_name + "')";
+				
 		SQLiteDatabase db = helper.getWritableDatabase();
 		c = db.rawQuery(
 				"SELECT ml.leaveoffice_time, mb.break_time, ma.attendance_time"
 						+ " FROM mst_leaveoffice ml, mst_break mb, mst_attendance ma"
 						+ " WHERE ml." + DbConstants.COLUMN_LEAVEOFFICE_DATE
-						+ "='" + leave_date + "'"
+						+ "='" + leave_date + "' AND ma.attendance_date='" + 
+						leave_date + "' AND ma.employee_id=" + SQL
 						+ " AND ml.employee_id = mb.employee_id"
 						+ " AND ml.employee_id = ma.employee_id", null);
 
