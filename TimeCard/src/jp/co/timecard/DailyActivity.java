@@ -24,7 +24,8 @@ public class DailyActivity extends Activity {
 	private int mMonth;
 	private int mDay;
 	private int week;
-
+	public String employee_name;
+	
 	static private Calendar calendar;
 	DecimalFormat df = new DecimalFormat("00");
 
@@ -49,8 +50,8 @@ public class DailyActivity extends Activity {
 		final String date = ds.getTargetDate(); // YYYY/MM/DD
 		final Dao dao = new Dao(getApplicationContext());
 		String[] default_param = dao.DailyDefaultTime();  // mst_initimeの値
-		String employee_name = ds.getMonthEmploySelect(); // 選択された社員名
-		
+		employee_name = ds.getMonthEmploySelect(); // 選択された社員名(id含む)
+		String employee_id = employee_name.substring(0,4);
 		
 		String attendance = null;
 		String leave = null;
@@ -154,10 +155,10 @@ public class DailyActivity extends Activity {
 
 		// 「削除」ボタン
 		Button bDelete = (Button) findViewById(R.id.button_delete);
-		//TODO 勤怠記録がない場合は、「削除」ボタンは非表示にする
-//		if(Arrays.binarySearch(dao.MonthlyList(date), "") == 1) {
-//			bDelete.setVisibility(View.INVISIBLE);
-//		}
+		// 勤怠記録がない場合は、「削除」ボタンは非表示にする
+		if(Arrays.binarySearch(dao.MonthlyList(date, employee_id), "") == 1) {
+			bDelete.setVisibility(View.INVISIBLE);
+		}
 		
 		bDelete.setOnClickListener(new OnClickListener() {
 			@Override
@@ -214,7 +215,7 @@ public class DailyActivity extends Activity {
 		
 		//Log.d("debug", Integer.toString(Arrays.binarySearch(dao.MonthlyList(dispdate), "")));
 		
-//		if(Arrays.binarySearch(dao.MonthlyList(dispdate), "") == -1) {
+//		if(Arrays.binarySearch(dao.MonthlyList(dispdate, employee_id), "") == -1) {
 //			//TODO 勤怠記録がある場合は、「削除」ボタンは表示にする
 //			bDelete.setVisibility(View.VISIBLE);
 //		} else {
@@ -225,13 +226,14 @@ public class DailyActivity extends Activity {
 		String attendance = kintaiparam[0];
 		String leave = kintaiparam[1];
 		String break_time= kintaiparam[2];
-
+		
 		tvDate.setText(mYear+"/" +df.format(mMonth)+"/" + 
 		df.format(mDay)+ "("+week_name[week]+")");
 
 		tvAttendance.setText(attendance);
 		tvLeave.setText(leave);
 		tvBreak.setText(break_time);
+		tvEmployeeName.setText(employee_name);
 	}
 
 	
