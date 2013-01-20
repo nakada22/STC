@@ -1,7 +1,6 @@
 package jp.co.timecard;
 
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -10,6 +9,7 @@ import android.app.Activity;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,7 +25,8 @@ public class DailyActivity extends Activity {
 	private int mDay;
 	private int week;
 	public String employee_name;
-	
+	Handler mHandler = new Handler();
+
 	static private Calendar calendar;
 	DecimalFormat df = new DecimalFormat("00");
 
@@ -38,7 +39,7 @@ public class DailyActivity extends Activity {
 	TextView tvLeave;
 	TextView tvBreak;
 	TextView tvEmployeeName;
-	
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.daily_main);
@@ -51,7 +52,7 @@ public class DailyActivity extends Activity {
 		final Dao dao = new Dao(getApplicationContext());
 		String[] default_param = dao.DailyDefaultTime();  // mst_initimeの値
 		employee_name = ds.getMonthEmploySelect(); // 選択された社員名(id含む)
-		String employee_id = employee_name.substring(0,4);
+		final String employee_id = employee_name.substring(0,4);
 		
 		String attendance = null;
 		String leave = null;
@@ -98,7 +99,7 @@ public class DailyActivity extends Activity {
 		bPre.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				setTargetDay(PRE_DAY);
+				setTargetDay(PRE_DAY,employee_id);
 			}
 		});
 
@@ -107,7 +108,7 @@ public class DailyActivity extends Activity {
 		bNex.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				setTargetDay(NEX_DAY);
+				setTargetDay(NEX_DAY,employee_id);
 			}
 		});
 
@@ -159,7 +160,6 @@ public class DailyActivity extends Activity {
 		if(Arrays.binarySearch(dao.MonthlyList(date, employee_id), "") == 1) {
 			bDelete.setVisibility(View.INVISIBLE);
 		}
-		
 		bDelete.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -168,67 +168,86 @@ public class DailyActivity extends Activity {
 				String dispdate = disp_strArray[0]+"/" +disp_strArray[1]+"/" 
 							+ disp_strArray[2].substring(0,2);
 				
+				Log.d("debug", "date="+date);
+				Log.d("debug", "dispdate="+dispdate);
+				
 				// 削除処理
 				if (date != dispdate) {
 					// 「前」「次」からのの遷移時は画面表示日次で削除処理
-					dao.DailyDelete(dispdate);
+					dao.DailyDelete(dispdate,employee_id);
 				} else {
 					// 月次画面からの遷移の場合は、月次画面から取得した日付で削除処理
-					dao.DailyDelete(date);
+					dao.DailyDelete(date,employee_id);
 				}
-				Toast.makeText(getApplicationContext(), "勤怠記録を削除しました", Toast.LENGTH_SHORT).show();
+				Toast.makeText(getApplicationContext(), 
+						"勤怠記録を削除しました", Toast.LENGTH_SHORT).show();
+			}
+		});
+		
+		//「月次画面に戻る」ボタン
+		Button bMonth_back = (Button) findViewById(R.id.button_monthly_back);
+		bMonth_back.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				startActivity(new Intent(getApplication(), 
+						MonthlyActivity.class));
 			}
 		});
 	}
 
-
 	/**
 	 * 表示対象日のデータをを取得。
-	 * @param value 前か次ボタンの値
+	 * 
+	 * @param value
+	 *            前か次ボタンの値
 	 */
-	public void setTargetDay(int value) {
+	public void setTargetDay(int value, String employee_id) {
 		// 日次画面の日付をセット
 		String Mtarget = tvDate.getText().toString();
 		String[] strArray = Mtarget.split("/");
 		DecimalFormat df = new DecimalFormat("00");
-		
-		calendar.set(Integer.parseInt(strArray[0]), 
-				Integer.parseInt(df.format(Integer.parseInt(strArray[1])-1)), 
-				Integer.parseInt(df.format(Integer.parseInt(strArray[2].substring(0,2)))));
+
+		calendar.set(Integer.parseInt(strArray[0]), Integer.parseInt(df
+				.format(Integer.parseInt(strArray[1]) - 1)), Integer
+				.parseInt(df.format(Integer.parseInt(strArray[2]
+						.substring(0, 2)))));
 
 		// 日付の加算・減算
 		calendar.add(Calendar.DAY_OF_MONTH, value);
 		mYear = calendar.get(Calendar.YEAR);
-		mMonth = calendar.get(Calendar.MONTH)+1;
+		mMonth = calendar.get(Calendar.MONTH) + 1;
 		mDay = calendar.get(Calendar.DAY_OF_MONTH);
-		int week = calendar.get(Calendar.DAY_OF_WEEK)-1;//1(日曜)～7(土曜)
-        String[] week_name = {"日", "月", "火", "水", "木", "金", "土"};
-        
-        String dispdate = mYear+"/" +df.format(mMonth)+"/" + df.format(mDay);
-        Log.d("debug",dispdate);
-        
+		int week = calendar.get(Calendar.DAY_OF_WEEK) - 1;// 1(日曜)～7(土曜)
+		String[] week_name = { "日", "月", "火", "水", "木", "金", "土" };
+
+		String dispdate = mYear + "/" + df.format(mMonth) + "/"
+				+ df.format(mDay);
+		Log.d("debug", dispdate);
+
 		// DBから対象日の勤怠情報取得
 		Dao dao = new Dao(this);
-		String[] kintaiparam = dao.DailyGetParam(dispdate);
-		
+		String[] kintaiparam = dao.DailyGetParam(dispdate,employee_id);
+
 		Button bDelete = (Button) findViewById(R.id.button_delete);
-		
-		//Log.d("debug", Integer.toString(Arrays.binarySearch(dao.MonthlyList(dispdate), "")));
-		
-//		if(Arrays.binarySearch(dao.MonthlyList(dispdate, employee_id), "") == -1) {
-//			//TODO 勤怠記録がある場合は、「削除」ボタンは表示にする
-//			bDelete.setVisibility(View.VISIBLE);
-//		} else {
-//			//TODO 勤怠記録がない場合は、「削除」ボタンは非表示にする
-//			bDelete.setVisibility(View.INVISIBLE);
-//		}
-		
+
+		// Log.d("debug",
+		// Integer.toString(Arrays.binarySearch(dao.MonthlyList(dispdate),
+		// "")));
+
+		 if(Arrays.binarySearch(dao.MonthlyList(dispdate, employee_id), "") == -1) {
+			 // 勤怠記録がある場合は、「削除」ボタンは表示にする
+			 bDelete.setVisibility(View.VISIBLE);
+		 } else {
+			 // 勤怠記録がない場合は、「削除」ボタンは非表示にする
+			 bDelete.setVisibility(View.INVISIBLE);
+		 }
+
 		String attendance = kintaiparam[0];
 		String leave = kintaiparam[1];
-		String break_time= kintaiparam[2];
-		
-		tvDate.setText(mYear+"/" +df.format(mMonth)+"/" + 
-		df.format(mDay)+ "("+week_name[week]+")");
+		String break_time = kintaiparam[2];
+
+		tvDate.setText(mYear + "/" + df.format(mMonth) + "/" + df.format(mDay)
+				+ "(" + week_name[week] + ")");
 
 		tvAttendance.setText(attendance);
 		tvLeave.setText(leave);
@@ -236,7 +255,6 @@ public class DailyActivity extends Activity {
 		tvEmployeeName.setText(employee_name);
 	}
 
-	
 	private class MyListener implements OnClickListener {
 		int layout_id;
 		int hourOfDay;
@@ -246,9 +264,8 @@ public class DailyActivity extends Activity {
 		Intent i = getIntent();
 		DailyState ds = (DailyState) i.getSerializableExtra("DailyState");
 		final String date = ds.getTargetDate();
-		final String employee_id = (ds.getMonthEmploySelect())
-				.substring(0, 4);
-	    
+		final String employee_id = (ds.getMonthEmploySelect()).substring(0, 4);
+
 		public MyListener(int layout_id) {
 			super();
 			switch (layout_id) {
@@ -259,17 +276,17 @@ public class DailyActivity extends Activity {
 
 				// 画面表示されている時刻取得
 				String disptime = String.valueOf(tv.getText());
-		    	hourOfDay = Integer.parseInt(disptime.substring(0, 2));
-		    	minute = Integer.parseInt(disptime.substring(3, 5));
+				hourOfDay = Integer.parseInt(disptime.substring(0, 2));
+				minute = Integer.parseInt(disptime.substring(3, 5));
 				break;
 			case R.id.daily_break:
 				this.layout_id = layout_id;
 				// 休憩時間は画面表示されていないのでDBから取ってくる必要がある
 				String break_time = dao.BreakTimeGet(employee_id, date);
-				//Log.d("debug",break_time);
-				
-		    	hourOfDay = Integer.parseInt(break_time.substring(0, 2));
-		    	minute = Integer.parseInt(break_time.substring(3, 5));
+				// Log.d("debug",break_time);
+
+				hourOfDay = Integer.parseInt(break_time.substring(0, 2));
+				minute = Integer.parseInt(break_time.substring(3, 5));
 				break;
 			}
 		}
@@ -280,9 +297,9 @@ public class DailyActivity extends Activity {
 			final TextView tv = (TextView) findViewById(layout_id);
 			String disptime = String.valueOf(tv.getText());
 
-	    	hourOfDay = Integer.parseInt(disptime.substring(0, 2));
-	    	minute = Integer.parseInt(disptime.substring(3, 5));
-	    	is24HourView = true;
+			hourOfDay = Integer.parseInt(disptime.substring(0, 2));
+			minute = Integer.parseInt(disptime.substring(3, 5));
+			is24HourView = true;
 
 			TimePickerDialog.OnTimeSetListener TimeSetListener = new TimePickerDialog.OnTimeSetListener() {
 				public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
@@ -290,25 +307,25 @@ public class DailyActivity extends Activity {
 					TextView tv = (TextView) findViewById(layout_id);
 					DecimalFormat df = new DecimalFormat("00");
 					StringBuilder sb = new StringBuilder()
-					.append(df.format(hourOfDay))
-					.append(":")
-					.append(df.format(minute));
+							.append(df.format(hourOfDay)).append(":")
+							.append(df.format(minute));
 					tv.setText(sb);
 				}
 			};
 
-			timePickerDialog = new TimePickerDialog(DailyActivity.this, TimeSetListener, hourOfDay, minute, is24HourView);
+			timePickerDialog = new TimePickerDialog(DailyActivity.this,
+					TimeSetListener, hourOfDay, minute, is24HourView);
 			// timePickerDialog時のメッセージ設定
 			switch (layout_id) {
-				case R.id.daily_attendance:
-					timePickerDialog.setMessage("始業時間設定");
-					break;
-				case R.id.daily_leave:
-					timePickerDialog.setMessage("終業時間設定");
-					break;
-				case R.id.daily_break:
-					timePickerDialog.setMessage("休憩時間設定");
-					break;
+			case R.id.daily_attendance:
+				timePickerDialog.setMessage("始業時間設定");
+				break;
+			case R.id.daily_leave:
+				timePickerDialog.setMessage("終業時間設定");
+				break;
+			case R.id.daily_break:
+				timePickerDialog.setMessage("休憩時間設定");
+				break;
 			}
 			timePickerDialog.show();
 		}

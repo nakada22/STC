@@ -248,20 +248,22 @@ public class Dao {
 	/*
 	 * 日次画面におけるデータ削除メソッド
 	 */
-	public void DailyDelete(String date) {
+	public void DailyDelete(String date, String employee_id) {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		try {
-			// 勤怠Id取得
-			Cursor c = db.rawQuery("SELECT mk.kintai_id FROM " +
-					"mst_kintai mk" + " WHERE mk.kintai_date=?", 
-					new String[]{date});
+			// 社員Id取得
+			Cursor c = db.rawQuery("SELECT mk.employee_id FROM " +
+					"mst_kintai mk" + " WHERE mk.kintai_date=? AND mk.employee_id=?", 
+					new String[]{date, employee_id});
 			if (c.moveToFirst()) {
-				String kintai_id = c.getString(0);
-				// 当該日付に紐づく出勤・退勤・休憩マスタのデータを削除
+				// 当該社員ID・日付に紐づく出勤・退勤・休憩マスタのデータを削除
 				// 勤怠マスタのデータは削除後の再登録のケースを考慮し、削除は行わない
-				db.delete(DbConstants.TABLE_NAME2, "kintai_id = " + kintai_id, null);
-				db.delete(DbConstants.TABLE_NAME3, "kintai_id = " + kintai_id, null);
-				db.delete(DbConstants.TABLE_NAME4, "kintai_id = " + kintai_id, null);
+				db.delete(DbConstants.TABLE_NAME2, "attendance_date=? AND " +
+						"employee_id=?", new String[]{date, employee_id});
+				db.delete(DbConstants.TABLE_NAME3, "leaveoffice_date=? AND " +
+						"employee_id=?", new String[]{date, employee_id});
+				db.delete(DbConstants.TABLE_NAME4, "break_date=? AND " +
+						"employee_id=?", new String[]{date, employee_id});
 			}
 		} finally {
 			db.close();
@@ -271,22 +273,23 @@ public class Dao {
 	/*
 	 * 日次画面の「前」「次」押下時の勤怠記録取得メソッド
 	 * */
-	public String[] DailyGetParam(String date){
+	public String[] DailyGetParam(String date, String employee_id){
 		String kintaiparam[] = new String[3];
-		String kintai_id_str = "SELECT mk.kintai_id FROM mst_kintai mk " +
-				"WHERE mk.kintai_date=?";
+		String employee_id_str = "SELECT mk.employee_id FROM mst_kintai mk " +
+				"WHERE mk.kintai_date=? AND mk.employee_id=?";
 		
 		String[] default_param = DailyDefaultTime(); // 時刻設定マスタのデータ
 		SQLiteDatabase db = helper.getWritableDatabase();
 		
 		try {
-			
-			Cursor c5 = db.rawQuery(kintai_id_str, new String[]{date});
+			Cursor c5 = db.rawQuery(employee_id_str, new String[]{date,employee_id});
 			if (c5.moveToFirst()){
-				// 勤怠IDがあれば
+				// 社員IDがあれば
 				// 出勤時刻取得SQL
-				Cursor c = db.rawQuery("SELECT ma.attendance_time FROM mst_attendance ma " +
-						"WHERE ma.kintai_id=(" + kintai_id_str + ")", new String[]{date});
+				Cursor c = db.rawQuery("SELECT ma.attendance_time FROM " +
+						"mst_attendance ma WHERE ma.employee_id=(" + employee_id_str + ") " +
+								"AND ma.attendance_date=?", 
+								new String[]{date,employee_id,date});
 				
 				// 出退勤記録の有無によって、時刻設定マスタからのデータ取得をすべきか決定
 				if (c.moveToFirst()){
@@ -298,8 +301,9 @@ public class Dao {
 					return kintaiparam;
 				}
 				// 退勤時刻取得SQL
-				Cursor c2 = db.rawQuery("SELECT ml.leaveoffice_time FROM mst_leaveoffice ml " +
-						"WHERE ml.kintai_id=(" + kintai_id_str + ")", new String[]{date});
+				Cursor c2 = db.rawQuery("SELECT ml.leaveoffice_time FROM " +
+						"mst_leaveoffice ml WHERE ml.employee_id=(" + employee_id_str + ") " +
+								"AND ml.leaveoffice_date=?", new String[]{date,employee_id,date});
 				
 				if (c2.moveToFirst()){
 					// 退勤記録がある場合
@@ -311,15 +315,16 @@ public class Dao {
 					return kintaiparam;
 				}
 				// 休憩時刻取得SQL
-				Cursor c3 = db.rawQuery("SELECT mb.break_time FROM mst_break mb " +
-						"WHERE mb.kintai_id=(" + kintai_id_str + ")", new String[]{date});
+				Cursor c3 = db.rawQuery("SELECT mb.break_time FROM " +
+						"mst_break mb WHERE mb.employee_id=(" + employee_id_str + ") " +
+								"AND mb.break_date=?", new String[]{date,employee_id,date});
 				
 				if (c3.moveToFirst()){
 					// 休憩記録がある場合
 					kintaiparam[2] = c3.getString(0); // 休憩時刻
 				}
 			} else {
-				// 勤怠IDがなければ
+				// 社員IDがなければ
 				kintaiparam = default_param;
 				return kintaiparam;
 			}
