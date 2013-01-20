@@ -134,21 +134,21 @@ public class DailyActivity extends Activity {
 				String dispdate = disp_strArray[0]+"/" +disp_strArray[1]+"/" 
 							+ disp_strArray[2].substring(0,2);
 				
-//				Log.d("debug", tvDate.getText().toString());
 //				Log.d("debug", dispdate);
 //				Log.d("debug", date);
+//				Log.d("debug", employee_id);
 				
 				// 出勤マスタ・退勤マスタ・休憩マスタへDB更新
 				if (date != dispdate) {
 					// 「前」「次」からのの遷移時は画面表示日次でDB更新処理
 					dao.DailyUpdate(new String[]{(String) tvAttendance.getText(),
 							(String) tvLeave.getText(),
-							(String) tvBreak.getText(),dispdate});
+							(String) tvBreak.getText(),dispdate},employee_id);
 				} else {
 					// 月次画面からの遷移の場合は、月次画面から取得した日付でDB更新処理
 					dao.DailyUpdate(new String[]{(String) tvAttendance.getText(),
 							(String) tvLeave.getText(),
-							(String) tvBreak.getText(),date});
+							(String) tvBreak.getText(),date},employee_id);
 				}
 				Toast.makeText(getApplicationContext(), "勤怠記録を登録しました。", Toast.LENGTH_SHORT).show();
 			}
