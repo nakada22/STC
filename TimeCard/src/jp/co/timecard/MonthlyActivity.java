@@ -68,14 +68,25 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 
 	@Override
 	public void onClick(View v) {
+		// 選択されている社員名
+		String employ_name = spinner.getSelectedItem().toString();
+					
 		switch (v.getId()) {
 		case R.id.button_pre_month:
 			setTargetMonth(PRE_MONTH);
-			createCalender(employee_id);
+			
+			// 「社員名」未選択時は、日別勤怠表示はしない
+			if (!employ_name.equals("社員情報を選択して下さい")) {
+				createCalender(employee_id);
+			}
 			break;
 		case R.id.button_next_month:
 			setTargetMonth(NEX_MONTH);
-			createCalender(employee_id);
+			
+			// 「社員名」未選択時は、日別勤怠表示はしない
+			if (!employ_name.equals("社員情報を選択して下さい")) {
+				createCalender(employee_id);
+			}
 			break;
 		default:
 			break;
