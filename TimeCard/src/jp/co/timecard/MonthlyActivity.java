@@ -1,5 +1,6 @@
 package jp.co.timecard;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -39,7 +40,11 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 	final int PRE_MONTH = -1;
 	final int NEX_MONTH = 1;
 	final String con_url = "http://sashihara.web.fc2.com/employ_info.csv";
-
+	//TextView mon_target_tv = (TextView) findViewById(R.id.mon_target);
+	private String output_url = "http://sashihara.web.fc2.com/";
+	DecimalFormat df = new DecimalFormat("00");
+	
+	
 	Spinner spinner;
 
 	@Override
@@ -151,8 +156,37 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 			return true;
 
 		case R.id.rec_export:
+			TextView mon_target_tv = (TextView) findViewById(R.id.mon_target);
+			
 			// TODO 勤怠記録出力
-
+			String file_name = mon_target_tv.getText().toString(); // 勤怠記録ファイル名
+			//Log.d("debug",file_name);
+			
+			// 「年」「月」取り除き
+			file_name = file_name.replaceAll("年","");
+			file_name = file_name.replaceAll("月","");
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append(file_name);
+			
+			if (file_name.length() == 5) {
+				// YYYYMの時
+				sb.insert(4, "0");// 0パディング
+			}
+			sb.append("_" + employee_id + ".csv");
+			file_name = sb.toString();
+			
+			String url = output_url + file_name;
+		    int start_day = cal.getActualMinimum(Calendar.DAY_OF_MONTH);
+		    int end_day = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+		    
+		    String month_first = sb.substring(0, 4)+"/" +sb.substring(4, 6)+"/" 
+					+ df.format(start_day);
+		    String month_last = sb.substring(0, 4)+"/" +sb.substring(4, 6)+"/" 
+					+ df.format(end_day);
+		    
+		    Dao dao = new Dao(this);
+			dao.MonthServiceInfo(employee_id,month_first,month_last,url,sb.toString());
 			return true;
 
 		}
@@ -167,14 +201,12 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 	 *            前月か次月ボタンの値
 	 */
 	public void setTargetMonth(int value) {
-
+		TextView mon_target_tv = (TextView) findViewById(R.id.mon_target);
 		cal.add(Calendar.MONTH, value);
 		mYear = cal.get(Calendar.YEAR);
 		mMonth = cal.get(Calendar.MONTH);
 		cal.set(mYear, mMonth, 1);
-
-		TextView tv = (TextView) findViewById(R.id.mon_target);
-		tv.setText(String.valueOf(mYear) + "年" + String.valueOf(mMonth + 1)
+		mon_target_tv.setText(String.valueOf(mYear) + "年" + String.valueOf(mMonth + 1)
 				+ "月");
 	}
 

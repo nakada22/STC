@@ -1,5 +1,13 @@
 package jp.co.timecard.db;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -332,4 +340,90 @@ public class Dao {
 		}
 		return kintaiparam;
 	}
+	
+	/*
+	 * 勤怠情報出力メソッド
+	 */
+	public void MonthServiceInfo(String employee_id, String month_first,
+			 					String month_last, String u, String file_name){
+		
+		// 社員IDに紐づく月別勤怠情報を取得
+		SQLiteDatabase db = helper.getWritableDatabase();
+		//SELECT * from mst_attendance WHERE attendance_date BETWEEN '2013/01/14' AND '2013/01/20'
+		String month_kintai_str = "SELECT mk.kintai_date, ma.attendance_time, " +
+				"ml.leaveoffice_time FROM mst_kintai mk, mst_attendance ma, " +
+				"mst_leaveoffice ml WHERE mk.employee_id=? AND " +
+				"mk.employee_id = ma.employee_id AND " +
+//				"mk.employee_id = ml.employee_id AND " +
+//				"mk.employee_id = mb.employee_id AND " +
+				"ma.attendance_date BETWEEN ? AND ?";
+		
+		//日付,出勤時刻,退勤時刻,労働時間
+		//2013/01/04,09:23,18:23,08:00
+		Log.d("debug",employee_id);
+		Log.d("debug",month_first);
+		Log.d("debug",month_last);
+		Log.d("debug",u);
+		Log.d("debug",file_name);
+		
+		Cursor c = db.rawQuery(month_kintai_str, 
+				new String[]{employee_id,month_first,month_last});
+		
+		if (c.moveToFirst()){
+			
+			StringBuilder sb = new StringBuilder();
+			String kintai_date = c.getString(0); 	// 勤怠日付
+			String kintai_attend = c.getString(1); 	// 出勤時刻
+			String kintai_leave = c.getString(2); 	// 退勤時刻
+			
+			// TODO 合計時間計算
+			sb.append(kintai_date + ",");
+			sb.append(kintai_attend + ",");
+			sb.append(kintai_leave + ",");
+			
+			// TODO CSV出力
+			try {
+				URL url = new URL(u); // URLクラスのインスタンス作成
+				URLConnection con = url.openConnection(); // コネクションを開く。
+				OutputStream os = con.getOutputStream();
+				byte [] output = sb.toString().getBytes("Shift_JIS");
+				
+//				File file = new File(u);
+//				PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+//		        pw.println(sb.toString());
+//		        pw.close();
+				
+				
+				
+//				File file = new File(u);
+//				FileWriter filewriter = new FileWriter(file, true);
+//				filewriter.write(sb.toString());
+				//os.close();
+				
+				
+				
+				
+				//FileOutputStream fp = new FileOutputStream(file_name);
+				//OutputStreamWriter ow = new OutputStreamWriter(fp, "Shift_JIS");
+				//int contents;
+				
+				
+				
+				
+				
+			} catch (Exception e) {
+				
+			} finally{
+				db.close();
+			}
+			
+			
+		}
+		
+	}
+	
+	
+	
+	
+	
 }
