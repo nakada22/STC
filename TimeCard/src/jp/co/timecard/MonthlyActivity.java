@@ -173,7 +173,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 				// YYYYMの時
 				sb.insert(4, "0");// 0パディング
 			}
-			sb.append("_" + employee_id + ".csv");
+			sb.append("_" + employee_id);
 			file_name = sb.toString();
 			
 			String url = output_url + file_name;
@@ -186,7 +186,8 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 					+ df.format(end_day);
 		    
 		    Dao dao = new Dao(this);
-			dao.MonthServiceInfo(employee_id,month_first,month_last,url,sb.toString());
+			dao.MonthServiceInfo(employee_id,month_first,month_last,url,sb.toString(),
+					getApplicationContext());
 			return true;
 
 		}

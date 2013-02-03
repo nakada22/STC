@@ -1,24 +1,24 @@
 package jp.co.timecard.db;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.FileEntity;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
 import android.util.Log;
 
 public class Dao {
 
+	//private static final String HttpMultipartMode = null;
 	private DbOpenHelper helper = null;
 
 	public Dao(Context context) {
@@ -342,21 +342,33 @@ public class Dao {
 	}
 	
 	/*
+	 * キャッシュディレクトリ内のファイル生成
+	 * */
+	public static File getDiskCacheDir(Context context, String file_name) {  
+		  
+	    final String cachePath = context.getCacheDir().getPath();  
+	    return new File(cachePath + File.separator + file_name);  
+	}
+	
+	/*
 	 * 勤怠情報出力メソッド
 	 */
 	public void MonthServiceInfo(String employee_id, String month_first,
-			 					String month_last, String u, String file_name){
+			 					String month_last, String u, String file_name,
+			 					Context context){
 		
-		// 社員IDに紐づく月別勤怠情報を取得
+		// TODO 社員IDに紐づく月別勤怠情報を取得
+		// 一行分しかデータ取得できていない
 		SQLiteDatabase db = helper.getWritableDatabase();
 		//SELECT * from mst_attendance WHERE attendance_date BETWEEN '2013/01/14' AND '2013/01/20'
 		String month_kintai_str = "SELECT mk.kintai_date, ma.attendance_time, " +
 				"ml.leaveoffice_time FROM mst_kintai mk, mst_attendance ma, " +
-				"mst_leaveoffice ml WHERE mk.employee_id=? AND " +
+				"mst_leaveoffice ml, mst_break mb WHERE mk.employee_id=? AND " +
 				"mk.employee_id = ma.employee_id AND " +
 //				"mk.employee_id = ml.employee_id AND " +
 //				"mk.employee_id = mb.employee_id AND " +
-				"ma.attendance_date BETWEEN ? AND ?";
+				"ma.attendance_date BETWEEN ? AND ?" + 
+				"GROUP BY ma.attendance_date ORDER BY ma.attendance_date";
 		
 		//日付,出勤時刻,退勤時刻,労働時間
 		//2013/01/04,09:23,18:23,08:00
@@ -383,10 +395,33 @@ public class Dao {
 			
 			// TODO CSV出力
 			try {
-				URL url = new URL(u); // URLクラスのインスタンス作成
-				URLConnection con = url.openConnection(); // コネクションを開く。
-				OutputStream os = con.getOutputStream();
+				
+				// 一時ファイル生成・書き込み
+				File tempFile = getDiskCacheDir(context, file_name+".csv");
+				
+				Log.d("debug",tempFile.toString());
+				
+				//File tempFile = File.createTempFile(file_name, ".csv"); 
+				//String tempPath = tempFile.getAbsolutePath();
+				
+				OutputStream os = new FileOutputStream(tempFile);  
 				byte [] output = sb.toString().getBytes("Shift_JIS");
+				os.write(output);
+				
+				//TODO ファイルアップロード
+				final HttpPost httpPost = new HttpPost(u);
+				final FileEntity reqEntity = new FileEntity(tempFile, "Shift_JIS");
+				reqEntity.setChunked(true);
+				httpPost.setEntity(reqEntity);
+			      
+			    
+			    
+			    
+				//URL url = new URL(u); // URLクラスのインスタンス作成
+				//URLConnection con = url.openConnection(); // コネクションを開く。
+				//OutputStream os = con.getOutputStream();
+				//byte [] output = sb.toString().getBytes("Shift_JIS");
+				
 				
 //				File file = new File(u);
 //				PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
@@ -395,24 +430,10 @@ public class Dao {
 				
 				
 				
-//				File file = new File(u);
-//				FileWriter filewriter = new FileWriter(file, true);
-//				filewriter.write(sb.toString());
-				//os.close();
-				
-				
-				
-				
-				//FileOutputStream fp = new FileOutputStream(file_name);
-				//OutputStreamWriter ow = new OutputStreamWriter(fp, "Shift_JIS");
-				//int contents;
-				
-				
-				
 				
 				
 			} catch (Exception e) {
-				
+				e.printStackTrace();
 			} finally{
 				db.close();
 			}
