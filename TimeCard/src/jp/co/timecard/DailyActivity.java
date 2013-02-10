@@ -52,7 +52,7 @@ public class DailyActivity extends Activity {
 		final Dao dao = new Dao(getApplicationContext());
 		String[] default_param = dao.DailyDefaultTime();  // mst_initimeの値
 		employee_name = ds.getMonthEmploySelect(); // 選択された社員名(id含む)
-		final String employee_id = employee_name.substring(0,4);
+		final String employee_id = employee_name.substring(0,5);
 		
 		String attendance = null;
 		String leave = null;
@@ -264,7 +264,7 @@ public class DailyActivity extends Activity {
 		Intent i = getIntent();
 		DailyState ds = (DailyState) i.getSerializableExtra("DailyState");
 		final String date = ds.getTargetDate();
-		final String employee_id = (ds.getMonthEmploySelect()).substring(0, 4);
+		final String employee_id = (ds.getMonthEmploySelect()).substring(0, 5);
 
 		public MyListener(int layout_id) {
 			super();

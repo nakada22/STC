@@ -158,7 +158,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 		case R.id.rec_export:
 			TextView mon_target_tv = (TextView) findViewById(R.id.mon_target);
 			
-			// TODO 勤怠記録出力
+			// 勤怠記録出力
 			String file_name = mon_target_tv.getText().toString(); // 勤怠記録ファイル名
 			//Log.d("debug",file_name);
 			
@@ -185,9 +185,20 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 		    String month_last = sb.substring(0, 4)+"/" +sb.substring(4, 6)+"/" 
 					+ df.format(end_day);
 		    
-		    Dao dao = new Dao(this);
-			dao.MonthServiceInfo(employee_id,month_first,month_last,url,sb.toString(),
-					getApplicationContext());
+		    String select_item = (String) spinner.getSelectedItem();
+		    if (select_item.equals("社員情報を選択して下さい")) {
+		    	Toast.makeText(MonthlyActivity.this, "社員名が未選択です", Toast.LENGTH_SHORT)
+				.show();
+		    	return false;
+		    } else {
+		    	Dao dao = new Dao(this);
+				dao.MonthServiceInfo(employee_id,month_first,month_last,url,sb.toString(),
+						getApplicationContext());
+				Toast.makeText(MonthlyActivity.this, select_item+"さんの勤怠記録ファイルを出力しました。", 
+						Toast.LENGTH_LONG)
+				.show();
+		    }
+		    
 			return true;
 
 		}
