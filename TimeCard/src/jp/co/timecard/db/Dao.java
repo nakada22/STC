@@ -14,6 +14,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 public class Dao {
 	
@@ -437,6 +438,14 @@ public class Dao {
 				ftpClient.storeFile("/"+file_name+".csv", is);
 				is.close();
 				ftpClient.disconnect();
+				
+				// キャッシュディレクトリ内ファイル削除
+				File[] Files = (new File(context.getCacheDir().getPath())).listFiles();
+				if ( Files != null ) {
+					for(int i = 0; i< Files.length; i++ ) {
+						Files[i].delete();
+					}
+				}
 				
 			} catch (Exception e) {
 				e.printStackTrace();
