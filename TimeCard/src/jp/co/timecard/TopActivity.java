@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import jp.co.timecard.db.TopDao;
 import android.app.Activity;
@@ -25,10 +27,10 @@ import android.app.AlertDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -65,7 +67,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.main);
-
+		
 		findViewById(R.id.checkBox1).setOnClickListener(this);
 		findViewById(R.id.attendance).setOnClickListener(this);
 		findViewById(R.id.leaveoffice).setOnClickListener(this);
@@ -90,6 +92,20 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		CurrentDisp();
 		TopPreInsert();
 		employ_select(); // 「社員情報選択」表示
+		
+		// Timerを使って、300ミリ秒間隔で画面時刻を現在時刻で更新
+		Timer mTimer = new Timer(true);
+		mTimer.schedule( new TimerTask(){
+	        @Override
+	        public void run() {
+	            mHandler.post( new Runnable() {
+	                public void run() {
+	                	final TextView tv = (TextView) findViewById(R.id.currenttime);
+	          		    Current_date(tv);
+	                }
+	            });
+	        }
+	    }, 100, 300);
 	}
 
 	@Override
