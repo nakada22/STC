@@ -46,32 +46,37 @@
         android:background="@layout/top_back" >
   	<TableRow
   	    android:layout_width="fill_parent">
-
-	  	
-  	    	
-  	     <ImageButton
+		
+<!--   	     <ImageButton
   	         android:id="@+id/attendance"
   	         android:layout_width="0dip"
   	         android:layout_height="wrap_content"
   	         android:layout_weight="1"
   	         android:background="@null"
   	         android:padding="0px"
-  	         android:src="@drawable/atendance" />
+  	         android:src="@drawable/atendance" /> -->
+  	     <Button
+            android:id="@+id/attendance"
+            android:layout_width="150dp"
+            android:layout_height="100dp"
+            android:text="出勤"
+            android:textSize="45sp" />
   	     
-
-
-
-
-
-  	    <ImageButton
+<!--   	    <ImageButton
   	        android:id="@+id/leaveoffice"
   	        android:layout_width="0dip"
   	        android:layout_height="wrap_content"
   	        android:layout_weight="1"
   	        android:background="@null"
   	        android:padding="0px"
-  	        android:src="@drawable/leave" />
-
+  	        android:src="@drawable/leave" /> -->
+	<Button
+	    android:id="@+id/leaveoffice"
+	    android:layout_width="150dp"
+	    android:layout_height="100dp"
+	    android:layout_marginLeft="10sp"
+	    android:text="退勤" 
+	    android:textSize="45sp"/>
 
   	</TableRow>
         
@@ -120,24 +125,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp" >
 
-<!-- 
-    <TableRow>
-	    <Button
-	    android:id="@+id/attendance"
-	    android:layout_width="150dp"
-	    android:layout_height="70dp"
-	    android:text="出勤" 
-	    android:textSize="45sp"/>
-	    
-	    <Button
-	    android:id="@+id/leaveoffice"
-	    android:layout_width="150dp"
-	    android:layout_height="70dp"
-	    android:layout_marginLeft="10sp"
-	    android:text="退勤" 
-	    android:textSize="45sp"/>
-   </TableRow>
-    -->
 	</TableLayout>
     
     

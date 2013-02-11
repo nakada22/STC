@@ -216,8 +216,10 @@ public class TopActivity extends Activity implements View.OnClickListener {
 			return;
 		}
 
-		final ImageButton imgbutton = new ImageButton(this);
-		imgbutton.setImageResource(R.drawable.atendance);
+		//final ImageButton imgbutton = new ImageButton(this);
+		//imgbutton.setImageResource(R.drawable.atendance);
+		Button attendbtn = (Button) findViewById(R.id.attendance);
+		
 		final TextView start_tv = (TextView) findViewById(R.id.start_time2);
 		boolean atd_flg;
 		// TextView atd_tv = (TextView) findViewById(R.id.currenttime);
@@ -235,7 +237,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 			Toast.makeText(TopActivity.this, "既に退勤済みです", Toast.LENGTH_SHORT)
 					.show();
 		} else {
-			if (imgbutton.isEnabled() == true) {
+			if (attendbtn.isEnabled() == true) {
 				Toast.makeText(TopActivity.this, "出勤", Toast.LENGTH_SHORT)
 						.show();
 			}
@@ -265,9 +267,10 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	 * 退勤ボタン押下処理
 	 */
 	public void LeaveofficeChange() {
-		final ImageButton leaveimgbutton = new ImageButton(this);
-		leaveimgbutton.setImageResource(R.drawable.leave);
-
+		//final ImageButton leaveimgbutton = new ImageButton(this);
+		//leaveimgbutton.setImageResource(R.drawable.leave);
+		Button leavebtn = (Button) findViewById(R.id.leaveoffice);
+		
 		final TextView start_tv = (TextView) findViewById(R.id.start_time2); // 始業時刻
 		final TextView end_tv = (TextView) findViewById(R.id.last_time2); // 終業時刻
 		final TextView break_tv = (TextView) findViewById(R.id.bleak_time2); // 休憩時間
@@ -302,7 +305,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 			Toast.makeText(TopActivity.this, "先に出勤記録を行って下さい。",
 					Toast.LENGTH_SHORT).show();
 		} else {
-			if (leaveimgbutton.isEnabled() == true) {
+			if (leavebtn.isEnabled() == true) {
 				Toast.makeText(TopActivity.this, "退勤", Toast.LENGTH_SHORT)
 						.show();
 			}
