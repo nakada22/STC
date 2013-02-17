@@ -3,6 +3,7 @@ package jp.co.timecard.db;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -22,11 +23,14 @@ public class Dao {
 	String sHost = "sashihara.web.fc2.com";
     String sUser = "sashihara";
     String sPass = "test123";
+    String sDir = "/";
     int    nPort = 21;
     
 	//private static final String HttpMultipartMode = null;
 	private DbOpenHelper helper = null;
-
+	
+	DecimalFormat df5 = new DecimalFormat("00000");
+	
 	public Dao(Context context) {
 		helper = new DbOpenHelper(context);
 	}
@@ -357,38 +361,53 @@ public class Dao {
 	
 	/*
 	 * 勤怠情報出力メソッド
+	 * file_name YYYYMMDD_
 	 */
 	public void MonthServiceInfo(String employee_id, String month_first,
 			 					String month_last, String u, String file_name,
-			 					Context context){
+			 					Context context, boolean all_flg){
 		
 		// 社員IDに紐づく月別勤怠情報を取得
 		// 但し、勤怠記録漏れ・記録なしの情報は取得しない
 		SQLiteDatabase db = helper.getWritableDatabase();
-		String month_kintai_str = "SELECT ma.attendance_date, ma.attendance_time, " +
+		// 一人用勤怠情報出力SQL
+		String one_month_kintai_str = "SELECT ma.attendance_date, ma.attendance_time, " +
 				"ml.leaveoffice_time, mb.break_time FROM mst_attendance ma LEFT JOIN " +
 				"mst_leaveoffice ml ON ma.attendance_date = ml.leaveoffice_date " +
 				"LEFT JOIN mst_break mb ON ma.attendance_date = mb.break_date " +
 				"WHERE ma.employee_id=? AND ma.employee_id=ml.employee_id AND " +
 				"ma.employee_id=mb.employee_id AND ma.attendance_date BETWEEN ? AND ? " +
 				"GROUP BY ma.attendance_date ORDER BY ma.attendance_date";
-						    
+		
+		// 全研修生の勤怠情報出力SQL(最初に社員IDの一覧取得)
+		String all_employeeid_str = "SELECT DISTINCT(ma.employee_id) " +
+				"FROM mst_attendance ma LEFT JOIN mst_leaveoffice ml ON " +
+				"ma.attendance_date = ml.leaveoffice_date LEFT JOIN " +
+				"mst_break mb ON ma.attendance_date = mb.break_date WHERE " +
+				"ma.attendance_date BETWEEN ? AND ? GROUP BY " +
+				"ma.attendance_date, ma.employee_id ORDER BY ma.employee_id";
+		
 		//Log.d("debug",employee_id);
 		//Log.d("debug",month_first);
 		//Log.d("debug",month_last);
 		//Log.d("debug",u);
 		//Log.d("debug",file_name);
 		
-		Cursor c = db.rawQuery(month_kintai_str, 
+		// 一人用Cursor
+		Cursor c = db.rawQuery(one_month_kintai_str, 
 				new String[]{employee_id,month_first,month_last});
 		
-		if (c.moveToFirst()){
-			
-			int rowcount = c.getCount(); // 件数
+		// 出力対象社員ID取得用Cursor
+		Cursor all_id_c = db.rawQuery(all_employeeid_str, 
+				new String[]{month_first,month_last});
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+		
+		if (c.moveToFirst() && all_flg == false){
 			StringBuilder sb = new StringBuilder();
 			sb.append("日付,出勤時刻,退勤時刻,労働時間\n");
-			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
 			
+			// 一人の出力時
+			int rowcount = c.getCount(); // 件数
 			for (int i = 0; i < rowcount ; i++) {
 				String kintai_date = c.getString(0); 	// 勤怠日付
 				String kintai_attend = c.getString(1); 	// 出勤時刻
@@ -415,43 +434,102 @@ public class Dao {
 				}
 				c.moveToNext();
 			}
+			// アプリキャッシュ内に一時ファイル生成(CSV出力)
+			File tempFile = getDiskCacheDir(context, file_name+employee_id+".csv");
+			FileUpload(tempFile,file_name+employee_id, sb);// ファイルアップロード
 			
-			try {
-		        
-		        // アプリキャッシュ内に一時ファイル生成(CSV出力)
-				File tempFile = getDiskCacheDir(context, file_name+".csv");
-				//Log.d("debug",tempFile.toString());
+		} else if (all_id_c.moveToFirst() && all_flg == true){
+			
+			String all_month_kintai_str = "SELECT ma.attendance_date, " +
+					"ma.attendance_time, ml.leaveoffice_time, mb.break_time " +
+					"FROM mst_attendance ma LEFT JOIN mst_leaveoffice ml ON " +
+					"ma.attendance_date = ml.leaveoffice_date LEFT JOIN " +
+					"mst_break mb ON ma.attendance_date = mb.break_date WHERE " +
+					"ma.attendance_date BETWEEN ? AND ? AND ma.employee_id=? GROUP BY " +
+					"ma.attendance_date, ma.employee_id ORDER BY ma.employee_id";
+			
+			// 全員出力時
+			int rowcount = all_id_c.getCount(); // 全社員ID分
+			for (int i = 0; i < rowcount ; i++) {
 				
-				FileOutputStream os = new FileOutputStream(tempFile);  
-				byte [] output = sb.toString().getBytes("Shift_JIS");
-				os.write(output);
+				StringBuilder sb = new StringBuilder();
+				sb.append("日付,出勤時刻,退勤時刻,労働時間\n");
+				String db_employee_id = df5.format(all_id_c.getInt(0));// DBから取得した出力対象社員ID
+
+				// 全員用情報取得Cursor
+				Cursor c2 = db.rawQuery(all_month_kintai_str, 
+						new String[]{month_first,month_last,db_employee_id});
 				
-				// FTPで指定するホスト、ポートに接続
-				FTPClient ftpClient = new FTPClient();
-				ftpClient.connect(sHost, nPort);
-				ftpClient.login(sUser, sPass);
-				
-				// FTPでファイルアップロード(ファイル転送モード設定)
-				ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-				ftpClient.enterLocalPassiveMode();
-				FileInputStream is = new FileInputStream(tempFile);  
-				ftpClient.storeFile("/"+file_name+".csv", is);
-				is.close();
-				ftpClient.disconnect();
-				
-				// キャッシュディレクトリ内ファイル削除
-				File[] Files = (new File(context.getCacheDir().getPath())).listFiles();
-				if ( Files != null ) {
-					for(int i = 0; i< Files.length; i++ ) {
-						Files[i].delete();
+				if (c2.moveToFirst()) {
+					for (int j = 0; j < c2.getCount() ; j++) {
+						// 勤怠情報
+						String kintai_date = c2.getString(0); 	// 勤怠日付
+						String kintai_attend = c2.getString(1); // 出勤時刻
+						String kintai_leave = c2.getString(2);	// 退勤時刻
+						String break_time = c2.getString(3); 	// 休憩時間
+						
+						try {
+							// 合計時間計算
+							Date at = sdf.parse(kintai_attend);
+							Date lt = sdf.parse(kintai_leave);
+							Date bt = sdf.parse(break_time);
+							
+							long sumtime = lt.getTime() - at.getTime() - bt.getTime()
+									+ 1000 * 60 * 60 * 6;
+							
+							sb.append(kintai_date + ",");
+							sb.append(kintai_attend + ",");
+							sb.append(kintai_leave + ",");
+							sb.append(sdf.format(sumtime) + "\n");
+							
+						} catch (java.text.ParseException e) {
+							e.printStackTrace();
+						}
+						c2.moveToNext();
 					}
 				}
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally{
-				db.close();
+				// アプリキャッシュ内に一時ファイル生成(CSV出力)
+				File tempFile = getDiskCacheDir(context, file_name+db_employee_id+".csv");
+				FileUpload(tempFile,file_name+db_employee_id, sb);// ファイルアップロード
+				all_id_c.moveToNext();
 			}
+		}
+		db.close();
+		
+		// キャッシュディレクトリ内ファイル削除
+		File[] Files = (new File(context.getCacheDir().getPath())).listFiles();
+		if ( Files != null ) {
+			for(int i = 0; i< Files.length; i++ ) {
+				Files[i].delete();
+			}
+		}
+	}
+	
+	/*
+	 * ファイルアップロード
+	 */
+	public void FileUpload(File upfile, String file_name, StringBuilder sb) {
+		
+		try {
+	        // アウトプットファイル生成
+			FileOutputStream os = new FileOutputStream(upfile);  
+			byte [] output = sb.toString().getBytes("Shift_JIS");
+			os.write(output);
+			
+			// FTPで指定するホスト、ポートに接続
+			FTPClient ftpClient = new FTPClient();
+			ftpClient.connect(sHost, nPort);
+			ftpClient.login(sUser, sPass);
+			
+			// FTPでファイルアップロード(ファイル転送モード設定)
+			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+			ftpClient.enterLocalPassiveMode();
+			FileInputStream is = new FileInputStream(upfile);  
+			ftpClient.storeFile(sDir+file_name+".csv", is);
+			is.close();
+			ftpClient.disconnect();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }
