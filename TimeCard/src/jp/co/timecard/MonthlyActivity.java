@@ -13,9 +13,11 @@ import java.util.Set;
 import jp.co.timecard.db.Dao;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,19 +32,21 @@ import android.widget.Toast;
  * 月次画面
  */
 public class MonthlyActivity extends Activity implements View.OnClickListener {
+	private ProgressDialog dlg = null;
 
 	private Calendar cal;
 	private int mYear;
 	private int mMonth;
 	public String employee_id;
+	Handler mHandler = new Handler();
 	
 	final int PRE_MONTH = -1;
 	final int NEX_MONTH = 1;
 	final String con_url = "http://sashihara.web.fc2.com/employ_info.csv";
-	//TextView mon_target_tv = (TextView) findViewById(R.id.mon_target);
+	// TextView mon_target_tv = (TextView) findViewById(R.id.mon_target);
 	private String output_url = "http://sashihara.web.fc2.com/";
 	DecimalFormat df = new DecimalFormat("00");
-	
+
 	Spinner spinner;
 
 	@Override
@@ -73,11 +77,11 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 	public void onClick(View v) {
 		// 選択されている社員名
 		String employ_name = spinner.getSelectedItem().toString();
-					
+
 		switch (v.getId()) {
 		case R.id.button_pre_month:
 			setTargetMonth(PRE_MONTH);
-			
+
 			// 「社員名」未選択時は、日別勤怠表示はしない
 			if (!employ_name.equals("社員情報を選択して下さい")) {
 				createCalender(employee_id);
@@ -85,7 +89,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 			break;
 		case R.id.button_next_month:
 			setTargetMonth(NEX_MONTH);
-			
+
 			// 「社員名」未選択時は、日別勤怠表示はしない
 			if (!employ_name.equals("社員情報を選択して下さい")) {
 				createCalender(employee_id);
@@ -155,76 +159,106 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 
 		case R.id.rec_export:
 			TextView mon_target_tv = (TextView) findViewById(R.id.mon_target);
-			
+
 			// 勤怠記録出力
 			String file_name = mon_target_tv.getText().toString(); // 勤怠記録ファイル名
-			//Log.d("debug",file_name);
-			
+			// Log.d("debug",file_name);
+
 			// 「年」「月」取り除き
-			file_name = file_name.replaceAll("年","");
-			file_name = file_name.replaceAll("月","");
-			
+			file_name = file_name.replaceAll("年", "");
+			file_name = file_name.replaceAll("月", "");
+
 			final StringBuilder sb = new StringBuilder();
 			sb.append(file_name);
-			
+
 			if (file_name.length() == 5) {
 				// YYYYMの時
 				sb.insert(4, "0");// 0パディング
 			}
 			sb.append("_");
 			file_name = sb.toString();
-			
+
 			final String url = output_url + file_name;
-		    int start_day = cal.getActualMinimum(Calendar.DAY_OF_MONTH);
-		    int end_day = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-		    
-		    final String month_first = sb.substring(0, 4)+"/" +sb.substring(4, 6)+"/" 
-					+ df.format(start_day);
-		    final String month_last = sb.substring(0, 4)+"/" +sb.substring(4, 6)+"/" 
-					+ df.format(end_day);
-		    
-		    String select_item = (String) spinner.getSelectedItem();
-		    final Dao dao = new Dao(this);
-		    
-		    if (select_item.equals("社員情報を選択して下さい")) {
-		    	
-		    	// TODO 全社員のその月の勤怠情報出力処理
-		    	new AlertDialog.Builder(MonthlyActivity.this)
-		    	.setIcon(android.R.drawable.ic_dialog_alert)
-		    	.setTitle(R.string.all_employinfo)
-		    	.setPositiveButton("OK", 
-		    		// 「OK」押下時
-		    	    new DialogInterface.OnClickListener() {
-		    	    public void onClick(DialogInterface dialog, int whichButton) {
-		    	    	dao.MonthServiceInfo(employee_id,month_first,month_last,url,sb.toString(),
-								getApplicationContext(), true);
-		    	    	
-		    	        Toast.makeText(MonthlyActivity.this, 
-		    	            "全研修生の勤怠情報を出力しました。", Toast.LENGTH_LONG).show();
-		    	    }
-		    	})
-		    	.setNegativeButton("キャンセル", 
-		    	    new DialogInterface.OnClickListener() {
-		    	    public void onClick(DialogInterface dialog, int whichButton) {
-		    	    	// 「キャンセル」押下時
-		    	        Toast.makeText(MonthlyActivity.this, 
-		    	            "「キャンセル」が押下されました。", Toast.LENGTH_LONG).show();
-		    	    }
-		    	})
-		    	.show();
-		    	
-		    	//Toast.makeText(MonthlyActivity.this, "社員名が未選択です", Toast.LENGTH_SHORT)
-				//.show();
-		    	return true;
-		    } else {
-		    	
-				dao.MonthServiceInfo(employee_id,month_first,month_last,url,sb.toString(),
-						getApplicationContext(), false);
-				Toast.makeText(MonthlyActivity.this, select_item+"さんの勤怠記録ファイルを出力しました。", 
-						Toast.LENGTH_LONG)
-				.show();
-		    }
-		    
+			int start_day = cal.getActualMinimum(Calendar.DAY_OF_MONTH);
+			int end_day = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+			final String month_first = sb.substring(0, 4) + "/"
+					+ sb.substring(4, 6) + "/" + df.format(start_day);
+			final String month_last = sb.substring(0, 4) + "/"
+					+ sb.substring(4, 6) + "/" + df.format(end_day);
+
+			String select_item = (String) spinner.getSelectedItem();
+			final Dao dao = new Dao(this);
+
+			// プログレスダイアログ
+			final ProgressDialog pdl;
+			pdl = new ProgressDialog(this);
+			pdl.setTitle("勤怠情報出力中");
+			pdl.setMessage("Now UpLoading...");
+			pdl.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
+			if (select_item.equals("社員情報を選択して下さい")) {
+
+				// TODO 全社員のその月の勤怠情報出力処理
+				new AlertDialog.Builder(MonthlyActivity.this)
+						.setIcon(android.R.drawable.ic_dialog_alert)
+						.setTitle(R.string.all_employinfo)
+						.setPositiveButton("OK",
+								// 「OK」押下時
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int whichButton) {
+										
+										pdl.show();
+										new Thread(new Runnable() {
+											public void run() {
+												try {
+													Thread.sleep(3000);
+												} catch (InterruptedException e) {
+												}
+												pdl.dismiss();
+												
+												mHandler.post(new Runnable() {
+													public void run() {
+														dao.MonthServiceInfo(employee_id,
+																month_first, month_last, url,
+																sb.toString(),
+																getApplicationContext(), true);
+														
+														Toast.makeText(MonthlyActivity.this,
+																"全研修生の勤怠情報を出力しました。",
+																Toast.LENGTH_LONG).show();
+													}
+												});
+												
+											}
+										}).start();
+									}
+								})
+						.setNegativeButton("キャンセル",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int whichButton) {
+										// 「キャンセル」押下時
+										Toast.makeText(MonthlyActivity.this,
+												"「キャンセル」が押下されました。",
+												Toast.LENGTH_LONG).show();
+									}
+								}).show();
+
+				// Toast.makeText(MonthlyActivity.this, "社員名が未選択です",
+				// Toast.LENGTH_SHORT)
+				// .show();
+				return true;
+			} else {
+
+				dao.MonthServiceInfo(employee_id, month_first, month_last, url,
+						sb.toString(), getApplicationContext(), false);
+				Toast.makeText(MonthlyActivity.this,
+						select_item + "さんの勤怠記録ファイルを出力しました。", Toast.LENGTH_LONG)
+						.show();
+			}
+
 			return true;
 
 		}
@@ -244,8 +278,8 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 		mYear = cal.get(Calendar.YEAR);
 		mMonth = cal.get(Calendar.MONTH);
 		cal.set(mYear, mMonth, 1);
-		mon_target_tv.setText(String.valueOf(mYear) + "年" + String.valueOf(mMonth + 1)
-				+ "月");
+		mon_target_tv.setText(String.valueOf(mYear) + "年"
+				+ String.valueOf(mMonth + 1) + "月");
 	}
 
 	/**
@@ -266,7 +300,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 			String crrent_mMonth = String.format("%1$02d", mMonth + 1);
 			String disp_date = String.format("%1$02d", i) + "日";
 			ds.setDate(disp_date);
-			
+
 			String date_param = mYear + "/" + crrent_mMonth + "/"
 					+ String.format("%1$02d", i);
 			ds.setTargetDate(date_param);
@@ -292,13 +326,13 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 				ds.setAttendance(attendance_time);
 				ds.setLeave(leaveoffice_time);
 				ds.setBreakTime(break_time);
-				ds.setMonthEmploySelect(employee_id+":"+employ_name); // 社員id:社員名
+				ds.setMonthEmploySelect(employee_id + ":" + employ_name); // 社員id:社員名
 				dayOfMonth.add(ds);
 			} catch (java.text.ParseException e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 		MonthlyAdapter la = new MonthlyAdapter(getApplicationContext(),
 				android.R.layout.simple_list_item_1, dayOfMonth);
 		ListView lv = (ListView) findViewById(R.id.listview);
@@ -365,13 +399,14 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 				final Iterator keyIte = keySet.iterator();
 
 				while (keyIte.hasNext()) {
-					employee_id = keyIte.next().toString(); 	// 社員ID
+					employee_id = keyIte.next().toString(); // 社員ID
 					String name = employ_data.get(employee_id); // 社員氏名
-					
+
 					if (item.equals("社員情報を選択して下さい")) {
 						// 初期化(非表示)デフォルト時
 						final ArrayList<DailyState> dayOfMonth = new ArrayList<DailyState>();
-						MonthlyAdapter la = new MonthlyAdapter(getApplicationContext(),
+						MonthlyAdapter la = new MonthlyAdapter(
+								getApplicationContext(),
 								android.R.layout.simple_list_item_1, dayOfMonth);
 						ListView lv = (ListView) findViewById(R.id.listview);
 						lv.setAdapter(la);
@@ -381,7 +416,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 						// 月次情報を表示
 						createCalender(employee_id);
 						Toast.makeText(MonthlyActivity.this,
-								name+"さんの月次情報を表示しました。", Toast.LENGTH_LONG)
+								name + "さんの月次情報を表示しました。", Toast.LENGTH_LONG)
 								.show();
 						return;
 					}
