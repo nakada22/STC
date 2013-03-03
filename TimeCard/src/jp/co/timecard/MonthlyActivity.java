@@ -86,7 +86,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 			setTargetMonth(PRE_MONTH);
 
 			// 「社員名」未選択時は、日別勤怠表示はしない
-			if (employ_name != null) {
+			if (employ_name != null && !(employ_name.equals("社員情報を選択して下さい"))) {
 				createCalender(employee_id);
 			}
 			break;
@@ -94,7 +94,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 			setTargetMonth(NEX_MONTH);
 			
 			// 「社員名」未選択時は、日別勤怠表示はしない
-			if (employ_name != null) {
+			if (employ_name != null && !(employ_name.equals("社員情報を選択して下さい"))) {
 				createCalender(employee_id);
 			}
 			break;
