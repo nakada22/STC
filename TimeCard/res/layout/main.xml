@@ -13,14 +13,13 @@
     <TableRow>
 		<ImageView
 		    android:src="@drawable/dakoku"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
+		    android:layout_width="100dip"
+		    android:layout_height="70dip"
 		/>
 		<ImageView
-	    	android:layout_marginLeft="100sp"
-	        android:src="@drawable/dakoku"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
+	    	android:src="@drawable/dakoku"
+	        android:layout_width="100dip"
+	        android:layout_height="70dip"
 	    />   
    </TableRow>
 </TableLayout>
@@ -38,7 +37,7 @@
 	    android:gravity="center"
     />
 </TableRow>
-	
+
 
 <TableLayout
         android:layout_width="fill_parent"
@@ -46,7 +45,7 @@
         android:background="@layout/top_back" >
   	<TableRow
   	    android:layout_width="fill_parent">
-		
+
 <!--   	     <ImageButton
   	         android:id="@+id/attendance"
   	         android:layout_width="0dip"
@@ -80,7 +79,7 @@
 
   	</TableRow>
         
-	
+
     <CheckBox
         android:id="@+id/checkBox1"
         android:layout_width="wrap_content"
@@ -138,11 +137,11 @@
 		android:layout_height="wrap_content"
 		/> 
 	</TableLayout>
-	
+
     <TableLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
-	    
+
 
         <TableRow >
 
@@ -165,9 +164,9 @@
 		    android:textSize="20sp"
 		    android:textColor="#000000"
 		     />
-		
+
 	    </TableRow>
-	    
+
 	    <TextView
 		android:id="@+id/textView_line2"
 		android:layout_width="fill_parent" 
@@ -192,11 +191,11 @@
 		    android:scrollHorizontally="true"
 		    android:textSize="20sp"
 		    android:textColor="#000000" />
-		
+
 	    </TableRow>
-	    
-		
-		
+
+
+
 	    <TextView
 		android:id="@+id/textView_line3"
 		android:layout_width="fill_parent" 
@@ -224,7 +223,7 @@
 		    android:textSize="20sp"
 		    android:textColor="#000000" />
 		</TableRow>
-		
+
 	    <TextView
 		android:id="@+id/textView_line4"
 		android:layout_width="fill_parent" 
@@ -232,7 +231,7 @@
 
 		android:textColor="#000000"
 		/>  
-		
+
 
 		<TableRow >
 		<TextView

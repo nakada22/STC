@@ -76,22 +76,25 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 	@Override
 	public void onClick(View v) {
 		// 選択されている社員名
-		String employ_name = spinner.getSelectedItem().toString();
-
+		String employ_name = null;
+		if (spinner.getSelectedItem() != null) {
+			employ_name = spinner.getSelectedItem().toString();
+		}
+		
 		switch (v.getId()) {
 		case R.id.button_pre_month:
 			setTargetMonth(PRE_MONTH);
 
 			// 「社員名」未選択時は、日別勤怠表示はしない
-			if (!employ_name.equals("社員情報を選択して下さい")) {
+			if (employ_name != null) {
 				createCalender(employee_id);
 			}
 			break;
 		case R.id.button_next_month:
 			setTargetMonth(NEX_MONTH);
-
+			
 			// 「社員名」未選択時は、日別勤怠表示はしない
-			if (!employ_name.equals("社員情報を選択して下さい")) {
+			if (employ_name != null) {
 				createCalender(employee_id);
 			}
 			break;
@@ -186,8 +189,16 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 					+ sb.substring(4, 6) + "/" + df.format(start_day);
 			final String month_last = sb.substring(0, 4) + "/"
 					+ sb.substring(4, 6) + "/" + df.format(end_day);
-
-			String select_item = (String) spinner.getSelectedItem();
+			
+			String select_item = null;
+			if (spinner.getSelectedItem() != null) {
+				select_item = (String) spinner.getSelectedItem();
+			} else {
+				Toast.makeText(getApplicationContext(), "社員名が未選択です", Toast.LENGTH_SHORT)
+				.show();
+				return false;
+			}
+			
 			final Dao dao = new Dao(this);
 
 			// プログレスダイアログ
@@ -359,7 +370,7 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 		List<String> employ_list = new ArrayList<String>();// 社員リスト
 
 		// ネットから社員データ取得
-		final Map<String, String> employ_data = ta.doNet(con_url);
+		final Map<String, String> employ_data = ta.doNet(con_url,getApplicationContext());
 
 		Set keySet = employ_data.keySet();
 		Iterator keyIte = keySet.iterator();

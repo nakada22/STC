@@ -25,9 +25,9 @@ import jp.co.timecard.db.TopDao;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
@@ -60,6 +60,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	Spinner spinner;
 	Handler mHandler = new Handler();
 	private String employee_id;
+	final String con_url = "http://sashihara.web.fc2.com/employ_info.csv";
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -223,12 +224,19 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		spinner = (Spinner) findViewById(R.id.employ_select);
 
 		// 選択されている社員名
-		String employ_name = spinner.getSelectedItem().toString();
-
+		String employ_name = null;
+		if (spinner.getSelectedItem() != null) {
+			employ_name = spinner.getSelectedItem().toString();
+		}
+		
 		// 「社員名」未選択時は、登録処理を行わない
-		if (employ_name.equals("社員情報を選択して下さい")) {
+		if (employ_name == null) {
 			Toast.makeText(TopActivity.this, "社員名が未選択です", Toast.LENGTH_SHORT)
 					.show();
+			return;
+		} else if (employ_name.equals("社員情報を選択して下さい") ) {
+			Toast.makeText(TopActivity.this, "社員名が未選択です", Toast.LENGTH_SHORT)
+			.show();
 			return;
 		}
 
@@ -293,13 +301,19 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		final TextView sumtime_tv = (TextView) findViewById(R.id.sum_time2); // 合計時間
 		spinner = (Spinner) findViewById(R.id.employ_select);
 
-		// 選択されている社員名
-		String employee_name = spinner.getSelectedItem().toString();
-
+		String employ_name = null;
+		if (spinner.getSelectedItem() != null) {
+			employ_name = spinner.getSelectedItem().toString();
+		}
+		
 		// 「社員名」未選択時は、登録処理を行わない
-		if (employee_name.equals("社員情報を選択して下さい")) {
+		if (employ_name == null) {
 			Toast.makeText(TopActivity.this, "社員名が未選択です", Toast.LENGTH_SHORT)
 					.show();
+			return;
+		} else if (employ_name.equals("社員情報を選択して下さい") ) {
+			Toast.makeText(TopActivity.this, "社員名が未選択です", Toast.LENGTH_SHORT)
+			.show();
 			return;
 		}
 
@@ -314,7 +328,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 
 		// 現在時刻使用チェック時、現在時刻で退勤時刻を記録
 		leave_flg = td.LeaveofficeSave(sdf.format(date), currenttime, null,
-				employee_name);
+				employ_name);
 
 		// まだ未出勤の場合
 		if (leave_flg == false) {
@@ -325,9 +339,9 @@ public class TopActivity extends Activity implements View.OnClickListener {
 				Toast.makeText(TopActivity.this, "退勤", Toast.LENGTH_SHORT)
 						.show();
 			}
-			td.preBreakSave(sdf.format(date), currenttime, employee_name);
+			td.preBreakSave(sdf.format(date), currenttime, employ_name);
 			td.TopTimeDisp(sdf.format(date), start_tv, end_tv, break_tv,
-					sumtime_tv, employee_name);
+					sumtime_tv, employ_name);
 
 		}
 
@@ -507,11 +521,10 @@ public class TopActivity extends Activity implements View.OnClickListener {
 		final TopDao td = new TopDao(getApplicationContext());
 
 		// 社員情報ファイルよりデータ取得
-		final String con_url = "http://sashihara.web.fc2.com/employ_info.csv";
 		List<String> employ_list = new ArrayList<String>();// 社員リスト
 
 		// ネットから社員データ取得
-		final Map<String, String> employ_data = doNet(con_url);
+		final Map<String, String> employ_data = doNet(con_url,getApplicationContext());
 
 		Set keySet = employ_data.keySet();
 		Iterator keyIte = keySet.iterator();
@@ -586,7 +599,7 @@ public class TopActivity extends Activity implements View.OnClickListener {
 	/*
 	 * ネット接続 (社員情報ゲット)
 	 */
-	public Map<String, String> doNet(String u) {
+	public Map<String, String> doNet(String u, Context context) {
 		// HashMapからMapのインスタンスを生成(戻り値用文字列 )
 		Map<String, String> ret = new HashMap<String, String>();
 
@@ -618,6 +631,12 @@ public class TopActivity extends Activity implements View.OnClickListener {
 			return ret;
 		} catch (IOException e) {
 			// 例外の場合は空文字を返す
+			Toast.makeText(context, "社員情報ファイルの読み込みに失敗しました", Toast.LENGTH_SHORT)
+			.show();
+			return ret;
+		} catch (RuntimeException e) {
+			Toast.makeText(context, "インターネットに接続できません", Toast.LENGTH_SHORT)
+			.show();
 			return ret;
 		}
 	}
