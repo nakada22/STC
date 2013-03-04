@@ -251,9 +251,6 @@ public class MonthlyActivity extends Activity implements View.OnClickListener {
 									public void onClick(DialogInterface dialog,
 											int whichButton) {
 										// 「キャンセル」押下時
-										Toast.makeText(MonthlyActivity.this,
-												"「キャンセル」が押下されました。",
-												Toast.LENGTH_LONG).show();
 									}
 								}).show();
 

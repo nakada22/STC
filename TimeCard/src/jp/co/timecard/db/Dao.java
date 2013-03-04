@@ -465,22 +465,26 @@ public class Dao {
 						// 勤怠情報
 						String kintai_date = c2.getString(0); 	// 勤怠日付
 						String kintai_attend = c2.getString(1); // 出勤時刻
-						String kintai_leave = c2.getString(2);	// 退勤時刻
+						String kintai_leave = c2.getString(2) != null ? 
+								c2.getString(2) : "";	// 退勤時刻
 						String break_time = c2.getString(3); 	// 休憩時間
 						
 						try {
 							// 合計時間計算
 							Date at = sdf.parse(kintai_attend);
-							Date lt = sdf.parse(kintai_leave);
-							Date bt = sdf.parse(break_time);
-							
-							long sumtime = lt.getTime() - at.getTime() - bt.getTime()
-									+ 1000 * 60 * 60 * 6;
-							
 							sb.append(kintai_date + ",");
 							sb.append(kintai_attend + ",");
 							sb.append(kintai_leave + ",");
-							sb.append(sdf.format(sumtime) + "\n");
+							
+							if (kintai_leave.length() != 0) {
+								Date lt = sdf.parse(kintai_leave);
+								Date bt = sdf.parse(break_time);
+								long sumtime = lt.getTime() - at.getTime() - bt.getTime()
+										+ 1000 * 60 * 60 * 6;
+								sb.append(sdf.format(sumtime) + "\n");
+							} else {
+								sb.append("\n");
+							}
 							
 						} catch (java.text.ParseException e) {
 							e.printStackTrace();
